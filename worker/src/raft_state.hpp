@@ -12,7 +12,7 @@ class RaftState final
 {
 public:
   RaftState()
-    : _role({Role.Candidate})
+    : _role({Role::Candidate})
     , _term({0})
   {}
 
@@ -21,7 +21,7 @@ public:
     return _role;
   }
 
-  void setRole(Role) {
+  void setRole(Role role) {
     _role = role;
   }
 

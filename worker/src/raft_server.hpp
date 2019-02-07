@@ -6,6 +6,7 @@
 #include <boost/asio.hpp>
 #include "common.hpp"
 #include "http_status_server.hpp"
+#include "raft_state.hpp"
 
 namespace mr
 {
@@ -41,6 +42,7 @@ protected:
   uint16_t _statusPort;
   boost::asio::io_context _ctx;
   std::unique_ptr<HttpStatusServer> _httpStatusServer;
+  std::unique_ptr<RaftState> _state;
 };
   
 }
