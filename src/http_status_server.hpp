@@ -6,14 +6,16 @@
 namespace mr
 {
 
-class HttpServer final
+class HttpStatusServer
 {
 public:
-  HttpServer(boost::asio::io_context &ctx,
+  HttpStatusServer(boost::asio::io_context &ctx,
 	     boost::asio::ip::tcp::endpoint &ep)
     : _ctx(ctx)
     , _acceptor(_ctx)
   {}
+
+  virtual ~HttpStatusServer() {}
 
   void start()
   {}

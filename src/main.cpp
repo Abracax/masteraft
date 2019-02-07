@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <memory>
 #include "raft_server.hpp"
 
 /**
@@ -20,8 +21,11 @@ int main(int argc, char *argv[])
     return 1;
   }
   
-  uint16_t RpcPort = std::stoi(argv[1]);
+  uint16_t rpcPort = std::stoi(argv[1]);
   uint16_t statusPort = std::stoi(argv[2]);
+
+  auto server = make_unique<RaftServer>(rpcPort, statusPort);
+  server->start();
   
   return 0;
 }
