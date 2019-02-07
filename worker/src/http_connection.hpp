@@ -3,37 +3,26 @@
 
 #include <string>
 #include <memory>
+#include "basic_connection.hpp"
 
 namespace mr
 {
 
-class HttpConnection : public std::enable_shared_from_this<HttpConnection>
+class HttpConnection : public std::enable_shared_from_this<HttpConnection>,
+		       public BasicConnection
 {
 public:
   HttpConnection(boost::asio::io_context &ctx)
-    : _socket(ctx)
+    : BasicConnection(ctx)
   {}
 
-  HttpConnection(const HttpConnection &) = delete;
-  HttpConnection &operator=(const HttpConnection &) = delete;
-  
-  virtual ~HttpConnection() {}
-
 public:
-  void start()
+  void start() override
   {
     // TODO: implement
     // if request is a legal GET / request, response RaftState as json.
     // else, return 404 with {} as body.
   }
-  
-  boost::asio::ip::tcp::socket &socket() {
-    return _socket;
-  }
-
-protected:
-  boost::asio::ip::tcp::socket _socket;
-  std::string _request;
 };
 
 }
