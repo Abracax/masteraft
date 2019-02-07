@@ -1,6 +1,8 @@
 #ifndef MASTER_RAFT_RPC_SERVER_HPP
 #define MASTER_RAFT_RPC_SERVER_HPP
 
+#include "rpc_connection.hpp"
+
 namespace mr
 {
 
@@ -19,6 +21,11 @@ public:
   RpcServer(const RpcServer &) = delete;
 
   virtual ~RpcServer() {}
+
+public:
+  void start() {
+    MR_LOG << "RpcServer started." << MR_EOL;
+  }
 
 protected:
 };

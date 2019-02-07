@@ -49,6 +49,14 @@ protected:
   void setTimer() {
     uint32_t time = (*_dist)(*_gen);
     MR_LOG << "timer time: " << time << MR_EOL;
+    _timer.reset(new boost::asio::steady_timer{_ctx,
+	  boost::asio::chrono::milliseconds(time)});
+    _timer->async_wait([this](const boost::system::error_code &err) {
+	if (err) {
+	  MR_LOG << "timer handler error: " << err.message() << MR_EOL;
+	}
+	setTimer();
+      });
   }
   
 protected:
@@ -56,9 +64,10 @@ protected:
   uint16_t _statusPort;
   boost::asio::io_context _ctx;
   std::unique_ptr<HttpStatusServer> _httpStatusServer;
-  std::unique_ptr<RaftState> _state;
-  std::unique_ptr<std::mt19937> _gen;
-  std::unique_ptr<std::uniform_int_distribution<>> _dist;
+  std::unique_ptr<RaftState> _state{new RaftState{}};
+  std::unique_ptr<std::mt19937> _gen{nullptr};
+  std::unique_ptr<std::uniform_int_distribution<>> _dist{nullptr};
+  std::unique_ptr<boost::asio::steady_timer> _timer{nullptr};
 };
   
 }
