@@ -29,6 +29,7 @@ public:
   void start()
   {
     MR_LOG << "start RaftServer invoked." << MR_EOL;
+    _httpStatusServer->start();
     _ctx.run();
   }
   
