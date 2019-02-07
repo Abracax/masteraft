@@ -21,7 +21,11 @@ public:
 
 public:
   void start()
-  {}
+  {
+    // TODO: implement
+    // if request is a legal GET / request, response RaftState as json.
+    // else, return 404 with {} as body.
+  }
   
   boost::asio::ip::tcp::socket &socket() {
     return _socket;
