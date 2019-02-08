@@ -7,10 +7,14 @@ enum PeerRpcType
 
 message VoteRequest
 {
+  int64 term = 1;
+  string candidateName = 2;
 }
 
 message VoteResponse
 {
+  int64 term = 1;
+  bool voteGranted = 2;
 }
 
 message PeerRequest

@@ -10,6 +10,7 @@
 #include "rpc_server.hpp"
 #include "raft_state.hpp"
 #include "utils.hpp"
+#include "src/proto/rpc.pb.h"
 
 namespace mr
 {
@@ -99,13 +100,34 @@ protected:
       auto eps = resolver.resolve(worker.host, std::to_string(worker.port));
       auto sock = std::make_shared<tcp::socket>(_ctx);
       boost::asio::async_connect(*sock.get(), eps,
-				 [sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
+				 [this, sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
 				   if (err) {
 				     MR_LOG_WARN << "connection error to worker: " << worker.name << MR_EOL;
 				     MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
+				     return;
 				   }
+				   auto reqBody = std::make_unique<VoteRequest>();
+				   reqBody->set_term(_state->getTerm());
+				   reqBody->set_candidatename(_workerName);
+				   uint32_t len = reqBody->ByteSizeLong();
+				   // remember to free
+				   auto buf = new char[len + 4];
+				   reqBody->SerializeToArray(buf + 4, len);
+				   boost::asio::async_write(*sock.get(),
+							    boost::asio::buffer(buf, len + 4),
+							    [sock, buf](const boost::system::error_code &err,
+									std::size_t write_length) {
+							      if (err) {
+								MR_LOG_WARN <<
+								  "write error: " <<
+								  err.message() << MR_EOL;
+							      }
+							      delete[] buf;
+							    });
+				   // boost::asio::async_read
 				 });
-    }
+    } // for
+    
   }
   
 protected:
