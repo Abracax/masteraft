@@ -128,6 +128,7 @@ protected:
 							      }
 							      delete[] buf;
 							    });
+				   // bug on reading
 				   auto readBuf = new char[READ_BUFFER_SIZE];
 				   boost::asio::async_read(*sock.get(),
 							   boost::asio::buffer(readBuf, READ_BUFFER_SIZE),

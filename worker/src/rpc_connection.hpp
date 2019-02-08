@@ -17,6 +17,11 @@ public:
   {}
 
   void start() override {
+    auto p = shared_from_this();
+    uint32_t realSize;
+    boost::asio::async_read(socket(),
+			    boost::asio::buffer(&realSize, 4),
+			    [](const boost::system::error_code &err, size_t) {});
   }
 };
   
