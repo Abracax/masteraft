@@ -3,10 +3,18 @@
 
 #include <memory>
 #include <atomic>
+#include <string>
 #include "common.hpp"
 
 namespace mr
 {
+
+struct WorkerID
+{
+  std::string name;
+  std::string host;
+  uint16_t port;
+};
 
 class RaftState final
 {
@@ -33,7 +41,7 @@ public:
     _term = term;
   }
   
-  using workers_t = std::vector<std::pair<std::string, uint16_t>>;
+  using workers_t = std::vector<WorkerID>;
 
   workers_t &getWorkers() {
     return _workers;
