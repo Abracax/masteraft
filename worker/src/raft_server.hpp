@@ -80,6 +80,9 @@ protected:
   void startElection() {
     MR_LOG << "start election" << MR_EOL;
     _state->setTerm(_state->getTerm() + 1);
+    _voteFor = 0;
+    _voteRejected = 0;
+    
     MR_LOG << "current term: " << _state->getTerm() << MR_EOL;
     auto workers = _state->getWorkers();
     MR_LOG << "cluster worker counts in configuration: " << workers.size() << MR_EOL;
@@ -124,7 +127,41 @@ protected:
 							      }
 							      delete[] buf;
 							    });
-				   // boost::asio::async_read
+				   auto readBuf = new char[READ_BUFFER_SIZE];
+				   boost::asio::async_read(*sock.get(),
+							   boost::asio::buffer(readBuf, READ_BUFFER_SIZE),
+							   [this, sock, readBuf](const boost::system::error_code &err,
+									   std::size_t read_length) {
+							     if (err) {
+							       MR_LOG_WARN <<
+								 "write error: " <<
+								 err.message() << MR_EOL;
+							     }
+							     uint32_t bodyLen = *readBuf;
+							     MR_LOG_TRACE << "response body length: " <<
+							       bodyLen << MR_EOL;
+							     
+							     auto resBody = std::make_unique<VoteResponse>();
+							     resBody->ParseFromString(readBuf + 4);
+							     auto term = resBody->term();
+							     auto vote = resBody->votegranted();
+
+							     if (vote) {
+							       ++_voteFor;
+							       MR_LOG << "got vote for me." << MR_EOL;
+							     } else {
+							       ++_voteRejected;
+							       MR_LOG << "got vote reject me." << MR_EOL;
+							     }
+							     // should update term if self is not leader?
+							     if (term > _state->getTerm()) {
+							       _state->setTerm(term);
+							       MR_LOG << "update term from peer: " <<
+								      term << MR_EOL;
+							     }
+							     delete[] readBuf;
+							     sock->close();
+							   });
 				 });
     } // for
     
@@ -142,6 +179,9 @@ protected:
   std::unique_ptr<std::mt19937> _gen{nullptr};
   std::unique_ptr<std::uniform_int_distribution<>> _dist{nullptr};
   std::unique_ptr<boost::asio::steady_timer> _timer{nullptr};
+
+  std::atomic_uint32_t _voteFor;
+  std::atomic_uint32_t _voteRejected;
 };
   
 }

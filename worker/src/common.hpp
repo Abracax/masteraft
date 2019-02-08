@@ -9,8 +9,10 @@
 
 // election term timeout
 // in MS
-#define MR_ELECT_LOW_BOUND 300
-#define MR_ELECT_HIGH_BOUND 500
+#define MR_ELECT_LOW_BOUND 3000
+#define MR_ELECT_HIGH_BOUND 5000
+
+#define READ_BUFFER_SIZE 4096
 
 namespace mr
 {
