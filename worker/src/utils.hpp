@@ -11,6 +11,10 @@ std::string getPersistentFileName(const std::string &workerName) {
   return workerName + ".persistent";
 }
 
+std::string getConfigFileName(const std::string &workerName) {
+  return workerName + ".config";
+}
+
 std::string getRoleTypeString(const Role &role) {
   switch (role)
   {
@@ -42,7 +46,7 @@ private:
 
 }
 
-#define MK_CLS_NAME __defer_##__LINE__
+#define MK_CLS_NAME __defer_##__FILE__##__LINE__
 #define MR_DEFER(fn) Defer MK_CLS_NAME(fn)
   
 #endif

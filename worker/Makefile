@@ -1,9 +1,9 @@
 all: worker_bin
 
-CXXFLAGS=-lpthread -lboost_system -O2 -g -std=c++14
+CXXFLAGS=-lpthread -lboost_system -lprotobuf -O2 -g -std=c++14
 
 worker_bin: src/*.cpp src/*.hpp protos
-	g++ src/*.cpp ${CXXFLAGS} -o worker_bin
+	g++ src/*.cpp build/src/proto/*.cc -Ibuild ${CXXFLAGS} -o worker_bin
 
 protos: src/proto/*.proto
 	protoc src/proto/*.proto --cpp_out=build

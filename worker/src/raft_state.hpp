@@ -48,10 +48,21 @@ public:
     return _workers;
   }
 
+  std::string getLeaderName() {
+    std::lock_guard<std::mutex> lock(_lock);
+    return _leaderName;
+  }
+
+  void setLeaderName(const std::string &name) {
+    std::lock_guard<std::mutex> lock(_lock);
+    _leaderName = name;
+  }
+
 private:
   std::atomic<Role> _role;
   std::atomic_uint64_t _term;
   workers_t _workers;
+  std::string _leaderName;
 
   std::mutex _lock;
 };

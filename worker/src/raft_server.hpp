@@ -92,7 +92,19 @@ protected:
     } else {
       workers.erase(it);
     }
+    
+    using boost::asio::ip::tcp;
+    tcp::resolver resolver(_ctx);
     for (const auto &worker : workers) {
+      auto eps = resolver.resolve(worker.host, std::to_string(worker.port));
+      auto sock = std::make_shared<tcp::socket>(_ctx);
+      boost::asio::async_connect(*sock.get(), eps,
+				 [sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
+				   if (err) {
+				     MR_LOG_WARN << "connection error to worker: " << worker.name << MR_EOL;
+				     MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
+				   }
+				 });
     }
   }
   
