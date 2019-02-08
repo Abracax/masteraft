@@ -6,7 +6,7 @@ worker_bin: src/*.cpp src/*.hpp protos
 	g++ src/*.cpp ${CXXFLAGS} -o worker_bin
 
 protos: src/proto/*.proto
-	protoc src/proto/rpc.proto --cpp_out=build
+	protoc src/proto/*.proto --cpp_out=build
 
 .PHONY: clean
 
