@@ -65,7 +65,12 @@ protected:
 	  MR_LOG << "timer handler error: " << err.message() << MR_EOL;
 	}
 	MR_LOG << "current role: " << getRoleTypeString(_state->getRole()) << MR_EOL;
-	setTimer();
+	MR_DEFER([this]() {setTimer();});
+	if (_state->getRole() == Role::Leader) {
+	  MR_LOG << "self is leader, do nothing." << MR_EOL;
+	  return;
+	}
+	startElection();
       });
   }
 

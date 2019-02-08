@@ -8,7 +8,7 @@ namespace mr
 {
 
 class RaftServer;
-  
+
 /**
  * Protocol:
  * First 4 bytes is a little-endian integer, indicates size of body.

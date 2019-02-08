@@ -2,6 +2,7 @@
 #define MASTER_RAFT_UTILS_HPP
 
 #include <string>
+#include <functional>
 
 namespace mr
 {
@@ -23,7 +24,25 @@ std::string getRoleTypeString(const Role &role) {
     return "Unknown";
   };
 }
-  
+
+class Defer
+{
+public:
+  Defer(const std::function<void()> &func)
+    : _func(func)
+  {}
+
+  ~Defer() {
+    _func();
+  }
+
+private:
+  std::function<void()> _func;
+};
+
 }
 
+#define MK_CLS_NAME __defer_##__LINE__
+#define MR_DEFER(fn) Defer MK_CLS_NAME(fn)
+  
 #endif
