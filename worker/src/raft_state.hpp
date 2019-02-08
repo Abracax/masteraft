@@ -32,10 +32,19 @@ public:
   void setTerm(uint64_t term) {
     _term = term;
   }
+  
+  using workers_t = std::vector<std::pair<std::string, uint16_t>>;
+
+  workers_t &getWorkers() {
+    return _workers;
+  }
 
 private:
   std::atomic<Role> _role;
   std::atomic_uint64_t _term;
+  workers_t _workers;
+
+  std::mutex _lock;
 };
 
 }

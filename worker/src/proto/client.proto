@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+enum ClientRpcType
+{
+  AddWorker = 0;
+}
+
+message ClientRequest
+{
+  ClientRpcType type = 1;
+}
+
+message ClientResponse
+{
+  ClientRpcType type = 1;
+}

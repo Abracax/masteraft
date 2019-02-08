@@ -1,6 +1,32 @@
 syntax = "proto3";
 
-message RoleMessage
+enum PeerRpcType
 {
-  int32 type = 1;
+  RequestVote = 0;
+}
+
+message VoteRequest
+{
+}
+
+message VoteResponse
+{
+}
+
+message PeerRequest
+{
+  PeerRpcType type = 1;
+  oneof payload
+  {
+    VoteRequest voteRequest = 11;
+  }
+}
+
+message PeerResponse
+{
+  PeerRpcType type = 1;
+  oneof payload
+  {
+    VoteResponse voteResponse = 11;
+  }
 }
