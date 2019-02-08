@@ -96,6 +96,7 @@ protected:
     } else {
       workers.erase(it);
     }
+    size_t count = workers.size();
     
     using boost::asio::ip::tcp;
     tcp::resolver resolver(_ctx);
@@ -164,7 +165,15 @@ protected:
 							   });
 				 });
     } // for
-    
+    while (_voteFor + _voteRejected < count) {
+      sleep(10);
+    }
+    if (_voteFor >= (count + 1) / 2) {
+      MR_LOG << "become leader." << MR_EOL;
+      _state->setRole(Role::Leader);
+    } else {
+      MR_LOG << "vote failed." << MR_EOL;
+    }
   }
   
 protected:
