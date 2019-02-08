@@ -43,7 +43,8 @@ public:
   
   using workers_t = std::vector<WorkerID>;
 
-  workers_t &getWorkers() {
+  workers_t getWorkers() {
+    std::lock_guard<std::mutex> lock(_lock);
     return _workers;
   }
 

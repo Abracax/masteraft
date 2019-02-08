@@ -57,17 +57,19 @@ public:
 protected:
   void setTimer() {
     uint32_t time = (*_dist)(*_gen);
-    MR_LOG << "timer time: " << time << MR_EOL;
+    MR_LOG_TRACE << "timer time: " << time << MR_EOL;
     _timer.reset(new boost::asio::steady_timer{_ctx,
 	  boost::asio::chrono::milliseconds(time)});
     _timer->async_wait([this](const boost::system::error_code &err) {
 	if (err) {
 	  MR_LOG << "timer handler error: " << err.message() << MR_EOL;
 	}
-	MR_LOG << "current role: " << getRoleTypeString(_state->getRole()) << MR_EOL;
-	MR_DEFER([this]() {setTimer();});
+	MR_LOG_TRACE << "current role: " <<
+	  getRoleTypeString(_state->getRole()) << MR_EOL;
+	MR_DEFER([this]() { setTimer(); });
+
 	if (_state->getRole() == Role::Leader) {
-	  MR_LOG << "self is leader, do nothing." << MR_EOL;
+	  MR_LOG_TRACE << "self is leader, do nothing." << MR_EOL;
 	  return;
 	}
 	startElection();
@@ -75,6 +77,23 @@ protected:
   }
 
   void startElection() {
+    MR_LOG << "start election" << MR_EOL;
+    _state->setTerm(_state->getTerm() + 1);
+    MR_LOG << "current term: " << _state->getTerm() << MR_EOL;
+    auto workers = _state->getWorkers();
+    MR_LOG << "cluster worker counts in configuration: " << workers.size() << MR_EOL;
+    auto it = std::find_if(workers.begin(),
+			   workers.end(),
+			   [this](const WorkerID &worker) {
+			     return worker.name == _workerName;
+			   });
+    if (it == workers.end()) {
+      MR_LOG_WARN << "the worker self is not configured in cluster." << MR_EOL;
+    } else {
+      workers.erase(it);
+    }
+    for (const auto &worker : workers) {
+    }
   }
   
 protected:

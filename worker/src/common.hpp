@@ -1,7 +1,10 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#define MR_LOG std::clog
+#define MR_LOG MR_LOG_INFO
+#define MR_LOG_WARN std::clog << "[WARN] "
+#define MR_LOG_INFO std::clog << "[INFO] "
+#define MR_LOG_TRACE std::clog << "[TRACE] "
 #define MR_EOL std::endl
 
 // election term timeout
