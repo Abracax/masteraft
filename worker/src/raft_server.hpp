@@ -26,7 +26,10 @@ public:
   {
     boost::asio::ip::tcp::endpoint httpEp(boost::asio::ip::tcp::v4(), statusPort);
     _httpStatusServer = std::make_unique<HttpStatusServer>(_ctx, httpEp);
-
+    _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
+    
+    
+    
     boost::asio::ip::tcp::endpoint rpcEp(boost::asio::ip::tcp::v4(), rpcPort);
     _rpcServer = std::make_unique<RpcServer>(_ctx, rpcEp);
     _rpcServer->setRaftServer(this);
@@ -80,6 +83,7 @@ protected:
   void startElection() {
     MR_LOG << "start election" << MR_EOL;
     _state->setTerm(_state->getTerm() + 1);
+    _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
     _voteFor = 0;
     _voteRejected = 0;
     
@@ -87,10 +91,10 @@ protected:
     auto workers = _state->getWorkers();
     MR_LOG << "cluster worker counts in configuration: " << workers.size() << MR_EOL;
     auto it = std::find_if(workers.begin(),
-			   workers.end(),
-			   [this](const WorkerID &worker) {
-			     return worker.name == _workerName;
-			   });
+        workers.end(),
+        [this](const WorkerID &worker) {
+          return worker.name == _workerName;
+        });
     if (it == workers.end()) {
       MR_LOG_WARN << "the worker self is not configured in cluster." << MR_EOL;
     } else {
@@ -104,67 +108,78 @@ protected:
       auto eps = resolver.resolve(worker.host, std::to_string(worker.port));
       auto sock = std::make_shared<tcp::socket>(_ctx);
       boost::asio::async_connect(*sock.get(), eps,
-				 [this, sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
-				   if (err) {
-				     MR_LOG_WARN << "connection error to worker: " << worker.name << MR_EOL;
-				     MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
-				     return;
-				   }
-				   auto reqBody = std::make_unique<VoteRequest>();
-				   reqBody->set_term(_state->getTerm());
-				   reqBody->set_candidatename(_workerName);
-				   uint32_t len = reqBody->ByteSizeLong();
-				   // remember to free
-				   auto buf = new char[len + 4];
-				   reqBody->SerializeToArray(buf + 4, len);
-				   boost::asio::async_write(*sock.get(),
-							    boost::asio::buffer(buf, len + 4),
-							    [sock, buf](const boost::system::error_code &err,
-									std::size_t write_length) {
-							      if (err) {
-								MR_LOG_WARN <<
-								  "write error: " <<
-								  err.message() << MR_EOL;
-							      }
-							      delete[] buf;
-							    });
-				   // bug on reading
-				   auto readBuf = new char[READ_BUFFER_SIZE];
-				   boost::asio::async_read(*sock.get(),
-							   boost::asio::buffer(readBuf, READ_BUFFER_SIZE),
-							   [this, sock, readBuf](const boost::system::error_code &err,
-									   std::size_t read_length) {
-							     if (err) {
-							       MR_LOG_WARN <<
-								 "write error: " <<
-								 err.message() << MR_EOL;
-							     }
-							     uint32_t bodyLen = *readBuf;
-							     MR_LOG_TRACE << "response body length: " <<
-							       bodyLen << MR_EOL;
-							     
-							     auto resBody = std::make_unique<VoteResponse>();
-							     resBody->ParseFromString(readBuf + 4);
-							     auto term = resBody->term();
-							     auto vote = resBody->votegranted();
+        [this, sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
+          if (err) {
+            MR_LOG_WARN << "connection error to worker: " << worker.name << MR_EOL;
+            MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
+            return;
+          }
+          auto reqBody = std::make_unique<VoteRequest>();
+          reqBody->set_term(_state->getTerm());
+          reqBody->set_candidatename(_workerName);
+          uint32_t len = reqBody->ByteSizeLong();
+          // remember to free
+          auto buf = new char[len + 4];
+          reqBody->SerializeToArray(buf + 4, len);
+          boost::asio::async_write(*sock.get(),
+                  boost::asio::buffer(buf, len + 4),
+                  [sock, buf](const boost::system::error_code &err,
+                  std::size_t write_length) {
+                    if (err) {
+                MR_LOG_WARN <<
+                  "write error: " <<
+                  err.message() << MR_EOL;
+                    }
+                    delete[] buf;
+                  });
+				    // bug on reading
+          auto preReadBuf = new char[4];
+          boost::asio::async_read(*sock.get(),
+                boost::asio::buffer(preReadBuf, 4),
+                [this, sock, preReadBuf](const boost::system::error_code &err,
+                    std::size_t read_length) {
+                  if (err) {
+                    MR_LOG_WARN << "write error: " << err.message() << MR_EOL;
+                  }
+                  uint32_t bodyLen = *preReadBuf;
+                  MR_LOG_TRACE << "response body length: " << bodyLen << MR_EOL;
+                  sock->close();
+                });
+          uint32_t bodyLen = *preReadBuf;
+          delete[] preReadBuf;
+          auto readBuf = new char[bodyLen+4];
+          boost::asio::async_read(*sock.get(),
+                boost::asio::buffer(readBuf, bodyLen+4),
+                [this, sock, readBuf](const boost::system::error_code &err,
+                    std::size_t read_length) {
+                  if (err) {
+                    MR_LOG_WARN <<
+                "write error: " <<
+                err.message() << MR_EOL;
+                  }
+                  auto resBody = std::make_unique<VoteResponse>();
+                  resBody->ParseFromString(readBuf + 4);
+                  auto term = resBody->term();
+                  auto vote = resBody->votegranted();
 
-							     if (vote) {
-							       ++_voteFor;
-							       MR_LOG << "got vote for me." << MR_EOL;
-							     } else {
-							       ++_voteRejected;
-							       MR_LOG << "got vote reject me." << MR_EOL;
-							     }
-							     // should update term if self is not leader?
-							     if (term > _state->getTerm()) {
-							       _state->setTerm(term);
-							       MR_LOG << "update term from peer: " <<
-								      term << MR_EOL;
-							     }
-							     delete[] readBuf;
-							     sock->close();
-							   });
-				 });
+                  if (vote) {
+                    ++_voteFor;
+                    MR_LOG << "got vote for me." << MR_EOL;
+                  } else {
+                    ++_voteRejected;
+                    MR_LOG << "got vote reject me." << MR_EOL;
+                  }
+                  // should update term if self is not leader?
+                  if (term > _state->getTerm()) {
+                    _state->setTerm(term);
+                    _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
+                    MR_LOG << "update term from peer: " <<
+                      term << MR_EOL;
+                  }
+                  delete[] readBuf;
+                  sock->close();
+                });
+        });
     } // for
     while (_voteFor + _voteRejected < count) {
       sleep(10);
@@ -172,6 +187,7 @@ protected:
     if (_voteFor >= (count + 1) / 2) {
       MR_LOG << "become leader." << MR_EOL;
       _state->setRole(Role::Leader);
+      _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
     } else {
       MR_LOG << "vote failed." << MR_EOL;
     }
@@ -183,6 +199,7 @@ protected:
   std::string _workerName;
   boost::asio::io_context _ctx;
   std::unique_ptr<HttpStatusServer> _httpStatusServer;
+  std::unique_ptr<HttpConnection> _httpConnection;
   std::unique_ptr<RpcServer> _rpcServer;
   
   std::unique_ptr<RaftState> _state{new RaftState{}};
