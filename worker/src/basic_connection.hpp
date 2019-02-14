@@ -1,6 +1,7 @@
 #ifndef MASTER_RAFT_BASIC_CONNECTION_HPP
 #define MASTER_RAFT_BASIC_CONNECTION_HPP
 
+#include <boost/asio.hpp>
 namespace mr
 {
 

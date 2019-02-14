@@ -33,14 +33,14 @@ public:
     MR_LOG << "RpcServer started." << MR_EOL;
     auto p = std::make_shared<RpcConnection>(_ctx);
     _acceptor.async_accept(p->socket(),
-			   [p, this](const boost::system::error_code &err) {
-			     if (err) {
-			       MR_LOG << "accept error: " << err.message() << MR_EOL;
-			       return;
-			     }
-			     p->start();
-			     start();
-			   });
+        [p, this](const boost::system::error_code &err) {
+          if (err) {
+            MR_LOG << "accept error: " << err.message() << MR_EOL;
+            return;
+          }
+          p->start();
+          start();
+        });
   }
 
   void setRaftServer(RaftServer *server) {
