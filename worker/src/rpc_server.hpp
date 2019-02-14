@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "rpc_connection.hpp"
+#include "src/proto/rpc.pb.h"
 
 namespace mr
 {
@@ -21,7 +22,9 @@ public:
 	    boost::asio::ip::tcp::endpoint &ep)
     : _ctx(ctx)
     , _acceptor(_ctx, ep)
-  {}
+  {
+    setIsFirst(1);
+  }
 
   RpcServer &operator=(const RpcServer &) = delete;
   RpcServer(const RpcServer &) = delete;
@@ -31,14 +34,15 @@ public:
 public:
   void start() {
     MR_LOG << "RpcServer started." << MR_EOL;
-    auto p = std::make_shared<RpcConnection>(_ctx);
-    _acceptor.async_accept(p->socket(),
-        [p, this](const boost::system::error_code &err) {
+    auto RpcConnect_ptr = std::make_shared<RpcConnection>(_ctx);
+    _acceptor.async_accept(RpcConnect_ptr->socket(),
+        [RpcConnect_ptr, this](const boost::system::error_code &err) {
           if (err) {
             MR_LOG << "accept error: " << err.message() << MR_EOL;
             return;
           }
-          p->start();
+          RpcConnect_ptr->start();
+          setIsFirst(0);
           start();
         });
   }
@@ -47,10 +51,14 @@ public:
     _raftServer = server;
   }
 
+  void setIsFirst(bool first) {
+    auto RpcConnect_ptr = std::make_shared<RpcConnection>(_ctx);
+    RpcConnect_ptr->setIsFirst(first);
+  }
+
 protected:
   boost::asio::io_context &_ctx;
   boost::asio::ip::tcp::acceptor _acceptor;
-
   RaftServer *_raftServer;
 };
 
