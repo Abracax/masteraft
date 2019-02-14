@@ -114,12 +114,15 @@ protected:
             MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
             return;
           }
-          auto reqBody = std::make_unique<VoteRequest>();
-          reqBody->set_term(_state->getTerm());
-          reqBody->set_candidatename(_workerName);
-          uint32_t len = reqBody->ByteSizeLong();
+          auto reqBody = std::make_unique<PeerRequest>();
+          auto reqBody_ = std::make_unique<VoteRequest>();
+          reqBody_->set_term(_state->getTerm());
+          reqBody_->set_candidatename(_workerName);
+          reqBody->set_allocated_voterequest(reqBody_.get());
+          uint32_t len = reqBody->ByteSizeLong();          
           // remember to free
           auto buf = new char[len + 4];
+          std::memcpy(buf, &len, 4);
           reqBody->SerializeToArray(buf + 4, len);
           boost::asio::async_write(*sock.get(),
                   boost::asio::buffer(buf, len + 4),
@@ -157,10 +160,10 @@ protected:
                 "write error: " <<
                 err.message() << MR_EOL;
                   }
-                  auto resBody = std::make_unique<VoteResponse>();
+                  auto resBody = std::make_unique<PeerResponse>();
                   resBody->ParseFromString(readBuf + 4);
-                  auto term = resBody->term();
-                  auto vote = resBody->votegranted();
+                  auto term = resBody->voteresponse().term();
+                  auto vote = resBody->voteresponse().votegranted();
 
                   if (vote) {
                     ++_voteFor;
