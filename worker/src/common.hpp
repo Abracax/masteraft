@@ -14,6 +14,8 @@
 
 #define READ_BUFFER_SIZE 4096
 
+#include <string>
+
 namespace mr
 {
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include "common.hpp"
 
 namespace mr
 {
@@ -28,6 +29,8 @@ std::string getRoleTypeString(const Role &role) {
     return "Unknown";
   };
 }
+
+
 
 class Defer
 {

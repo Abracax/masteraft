@@ -1,0 +1,9 @@
+{
+    "Servers": [
+        {
+            "serverName" : "pusheen",
+            "serverip": "127.0.0.1",
+            "serverPort" : 2333
+        }
+    ]
+}
