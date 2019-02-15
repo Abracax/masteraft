@@ -18,44 +18,41 @@ struct ConfigServer
 {
     std::string serverName;
     std::string serverip;
-    int serverPort;
+    int serverHTTPPort;
+    int serverRPCPort;
 };
 
 class ServerConfigs
 {
 public:
     ServerConfigs()
-        :ServerData(){}
+        :_serverData(){}
 
 public:
-    std::vector<ConfigServer> readJson() {
-        std::ifstream t("src/config/config.json");
+    ConfigServer readJson() {
+        std::ifstream t("../config/config.json");
         std::stringstream buffer;
         buffer << t.rdbuf();
         std::string str = buffer.str();
-        //MR_LOG_INFO << str << MR_EOL;
         boost::property_tree::ptree pt;
         boost::property_tree::read_json(buffer, pt);
-        boost::property_tree::ptree arraypt = pt.get_child("Servers");
-        for (boost::property_tree::ptree::iterator it = arraypt.begin(); it != arraypt.end(); ++it) {
-            boost::property_tree::ptree data = it->second;
-            ConfigServer _serverData;
-            _serverData.serverName = data.get<std::string>("serverName");
-            _serverData.serverip = data.get<std::string>("serverip");
-            _serverData.serverPort = data.get<int>("serverPort");
-            ServerData.push_back(_serverData);
-            MR_LOG_INFO << "Configurations for servers:\n"
-                        << _serverData.serverName << "    "
-                        << _serverData.serverip << "    "
-                        << _serverData.serverPort << "\n"
-                        << MR_EOL;
-        }
-        return std::move(ServerData);
+        boost::property_tree::ptree data = pt.get_child("Server");
+        _serverData.serverName = data.get<std::string>("serverName");
+        _serverData.serverip = data.get<std::string>("serverip");
+        _serverData.serverHTTPPort = data.get<int>("serverHTTPPort");
+        _serverData.serverRPCPort = data.get<int>("serverRPCPort");
+        MR_LOG_INFO << "Configurations for this server:\n"
+                    "serverName:  " << _serverData.serverName << "\n"
+                    "serverip:  " << _serverData.serverip << "\n"
+                    "serverRPCPort:   "<< _serverData.serverRPCPort << "\n"
+                    "serverHTTPPort:  " << _serverData.serverHTTPPort << "\n" << MR_EOL;
+        MR_LOG_INFO << str << MR_EOL;
+        return _serverData;
     }
 
     virtual ~ServerConfigs(){}
 private:
-    std::vector<ConfigServer> ServerData;
+    ConfigServer _serverData;
 };
 }
 
