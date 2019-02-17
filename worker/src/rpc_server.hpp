@@ -15,7 +15,7 @@ class RaftServer;
  * First 4 bytes is a little-endian integer, indicates size of body.
  * then is a single pb bin struct act as body.
  */
-class RpcServer
+class RpcServer     
 {
 public:
   RpcServer(boost::asio::io_context &ctx,

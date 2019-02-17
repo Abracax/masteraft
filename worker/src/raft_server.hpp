@@ -21,19 +21,18 @@ namespace mr
 class RaftServer
 {
 public:
-  RaftServer(const std::string &workerName, uint16_t rpcPort, uint16_t statusPort)
+  RaftServer(const std::string &workerName, uint16_t rpcPort, uint16_t statusPort,std::vector<WorkerID>& workerInfo)
     : _workerName(workerName)
   {
     boost::asio::ip::tcp::endpoint httpEp(boost::asio::ip::tcp::v4(), statusPort);
     _httpStatusServer = std::make_unique<HttpStatusServer>(_ctx, httpEp);
     _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
     
-    
-    
     boost::asio::ip::tcp::endpoint rpcEp(boost::asio::ip::tcp::v4(), rpcPort);
     _rpcServer = std::make_unique<RpcServer>(_ctx, rpcEp);
     _rpcServer->setRaftServer(this);
     
+    _state->setWorkers(workerInfo);
     std::random_device rd;
     _gen.reset(new std::mt19937{rd()});
     _dist.reset(new std::uniform_int_distribution<>{
@@ -49,6 +48,8 @@ public:
   void start()
   {
     MR_LOG << "start RaftServer invoked." << MR_EOL;
+
+    auto workers = _state->getWorkers();
     _httpStatusServer->start();
     _rpcServer->start();
     setTimer();
@@ -119,7 +120,7 @@ protected:
           reqBody_->set_term(_state->getTerm());
           reqBody_->set_candidatename(_workerName);
           reqBody->set_allocated_voterequest(reqBody_.get());
-          uint32_t len = reqBody->ByteSizeLong();          
+          uint32_t len = reqBody->ByteSizeLong();        
           // remember to free
           auto buf = new char[len + 4];
           std::memcpy(buf, &len, 4);
@@ -129,10 +130,11 @@ protected:
                   [sock, buf](const boost::system::error_code &err,
                   std::size_t write_length) {
                     if (err) {
-                MR_LOG_WARN <<
+                  MR_LOG_WARN <<
                   "write error: " <<
                   err.message() << MR_EOL;
                     }
+                    MR_LOG_TRACE << buf << MR_EOL;
                     delete[] buf;
                   });
 				    // bug on reading

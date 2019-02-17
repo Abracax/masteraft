@@ -10,6 +10,7 @@
 #include <iostream>
 
 #include "common.hpp"
+#include "raft_state.hpp"
 
 namespace mr
 {
@@ -46,13 +47,31 @@ public:
                     "serverip:  " << _serverData.serverip << "\n"
                     "serverRPCPort:   "<< _serverData.serverRPCPort << "\n"
                     "serverHTTPPort:  " << _serverData.serverHTTPPort << "\n" << MR_EOL;
-        MR_LOG_INFO << str << MR_EOL;
+        boost::property_tree::ptree allWorkers = pt.get_child("AllServers");
+        for (boost::property_tree::ptree::iterator it = allWorkers.begin(); it != allWorkers.end(); ++ it) {
+            WorkerID worker;
+            worker.name = it->second.get<std::string>("serverName");
+            worker.host = it->second.get<std::string>("serverip");
+            worker.port = it->second.get<int>("serverRPCPort");
+            _workers.push_back(worker);
+            MR_LOG_INFO << "\n"
+                    << worker.name << "    "
+                    << worker.host << "    "
+                    << worker.port << "    "
+                    << "\n" << MR_EOL;
+        }
         return _serverData;
+    }
+
+    const std::vector<WorkerID>& GetAllWorkerInfo () const
+    {
+        return _workers;
     }
 
     virtual ~ServerConfigs(){}
 private:
     ConfigServer _serverData;
+    std::vector<WorkerID> _workers;
 };
 }
 

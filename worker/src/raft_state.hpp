@@ -4,6 +4,8 @@
 #include <memory>
 #include <atomic>
 #include <string>
+#include <mutex>
+#include <vector>
 #include "common.hpp"
 
 
@@ -47,6 +49,10 @@ public:
   workers_t getWorkers() {
     std::lock_guard<std::mutex> lock(_lock);
     return _workers;
+  }
+
+  void setWorkers(workers_t workers) {
+    _workers = workers;
   }
 
   std::string getLeaderName() {

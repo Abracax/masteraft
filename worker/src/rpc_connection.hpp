@@ -32,7 +32,7 @@ public:
     auto readBuf = new char[realSize+4];
     boost::asio::ip::tcp::socket& sock = socket();
     boost::asio::async_read(socket(),
-          boost::asio::buffer(readBuf, realSize+4),
+          boost::asio::buffer(&readBuf, realSize+4),
           [this,readBuf,&sock](const boost::system::error_code &err,
               std::size_t read_length) {
             if (err) {
@@ -43,6 +43,9 @@ public:
             auto reqBody = std::make_unique<PeerRequest>();
             reqBody->ParseFromString(readBuf + 4);
             auto term = reqBody->voterequest().term();
+
+            MR_LOG << term << MR_EOL;
+
             auto resBody = std::make_unique<PeerResponse>();
             auto _resbody = std::make_unique<VoteResponse>();
             _resbody->set_term(term);

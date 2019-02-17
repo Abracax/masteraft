@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 
   auto readFile = make_unique<ServerConfigs>();
   ConfigServer server_configs = readFile->readJson();
-  
-  auto server = make_unique<RaftServer>(server_configs.serverName, server_configs.serverRPCPort, server_configs.serverHTTPPort);
+  std::vector<WorkerID> workerInfo = readFile->GetAllWorkerInfo();
+  auto server = make_unique<RaftServer>(server_configs.serverName, server_configs.serverRPCPort, server_configs.serverHTTPPort,workerInfo);
   server->start();
   return 0;
 }
