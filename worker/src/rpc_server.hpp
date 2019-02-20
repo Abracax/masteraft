@@ -43,8 +43,10 @@ public:
           }
           RpcConnect_ptr->start();
           setIsFirst(0);
+          RpcConnect_ptr->socket().close();
           start();
         });
+        
   }
 
   void setRaftServer(RaftServer *server) {
