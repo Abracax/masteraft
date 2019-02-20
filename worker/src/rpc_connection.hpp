@@ -18,58 +18,54 @@ public:
   {}
 
   void start() override {
-    auto p = shared_from_this();
-    uint32_t realSize;
+    auto buf = new char[READ_BUFFER_SIZE];
     boost::asio::async_read(socket(),
-			    boost::asio::buffer(&realSize, 4),
-			    [](const boost::system::error_code &err, size_t) {
-            if (err) {
-              MR_LOG_WARN <<
-          "rpc receive error: " <<
-          err.message() << MR_EOL;
-            }
-          });
-    auto readBuf = new char[realSize+4];
-    boost::asio::ip::tcp::socket& sock = socket();
-    boost::asio::async_read(socket(),
-          boost::asio::buffer(&readBuf, realSize+4),
-          [this,readBuf,&sock](const boost::system::error_code &err,
-              std::size_t read_length) {
-            if (err) {
-              MR_LOG_WARN <<
-          "rpc read error: " <<
-          err.message() << MR_EOL;
-            }
-            auto reqBody = std::make_unique<PeerRequest>();
-            reqBody->ParseFromString(readBuf + 4);
-            auto term = reqBody->voterequest().term();
+              boost::asio::buffer(buf,READ_BUFFER_SIZE),boost::asio::transfer_at_least(4),
+              [this,buf](const boost::system::error_code &err,std::size_t read_length) {
+                if (err) {
+                      MR_LOG_WARN << "rpc read first 4 bytes error: " <<
+                      err.message() << MR_EOL;
+                      return;
+                }
 
-            MR_LOG << term << MR_EOL;
+    });
+    auto num = new char[4];
+    std::memcpy(num, buf, 4);
+    uint32_t len = *num;
+    MR_LOG << len << MR_EOL;
 
-            auto resBody = std::make_unique<PeerResponse>();
-            auto _resbody = std::make_unique<VoteResponse>();
-            _resbody->set_term(term);
-            _resbody->set_votegranted(isFirst);
-            resBody->set_type(RequestVote);
-            resBody->set_allocated_voteresponse(_resbody.get());
-            uint32_t len = resBody->ByteSizeLong();
-            auto buf = new char[len + 4];
-            std::memcpy(buf, &len, 4);
-            resBody->SerializeToArray(buf + 4, len);
-            boost::asio::async_write(socket(),
-                  boost::asio::buffer(buf, len + 4),
-                  [&sock, buf](const boost::system::error_code &err,
-                  std::size_t write_length) {
-                    if (err) {
-                MR_LOG_WARN <<
-                  "write error: " <<
-                  err.message() << MR_EOL;
-                    }
-                    delete[] buf;
-                  });
-            sock.close();
-            delete[] readBuf;
-          });
+    auto str = new char[len];
+
+    std::memcpy(str, buf+4, len);
+    
+    auto reqBody = std::make_unique<PeerRequest>();
+    reqBody->ParseFromString(str);
+    auto term = reqBody->voterequest().term();
+
+    MR_LOG << term << " received" << MR_EOL;
+
+    PeerResponse resBody;
+    VoteResponse* _resbody = new VoteResponse();
+    _resbody->set_term(term);
+    resBody.set_allocated_voteresponse(_resbody);
+    uint32_t wlen = resBody.ByteSizeLong();
+    auto wbuf = new char[wlen + 4];
+    std::memcpy(wbuf, &wlen, 4);
+    resBody.SerializeToArray(wbuf + 4, wlen);
+
+    delete[] buf;
+
+    boost::asio::async_write(socket(),
+            boost::asio::buffer(wbuf, wlen+4),
+                  [wbuf,wlen](const boost::system::error_code &err, std::size_t write_length) {
+          if (err) {
+              MR_LOG_WARN << "write error: " <<
+              err.message() << MR_EOL;
+              return;
+          }
+          MR_LOG << "returned" << MR_EOL;
+          delete[] wbuf;
+      });
   }
   void setIsFirst(bool first) {
     isFirst = first;

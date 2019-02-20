@@ -106,7 +106,7 @@ protected:
     using boost::asio::ip::tcp;
     tcp::resolver resolver(_ctx);
     for (const auto &worker : workers) {
-      auto eps = resolver.resolve(worker.host, std::to_string(worker.port));
+      auto eps = resolver.resolve("127.0.0.1", std::to_string(worker.port));
       auto sock = std::make_shared<tcp::socket>(_ctx);
       boost::asio::async_connect(*sock.get(), eps,
         [this, sock, worker](const boost::system::error_code &err, const tcp::endpoint &) {
@@ -115,77 +115,68 @@ protected:
             MR_LOG_WARN << "connection error message: " << err.message() << MR_EOL;
             return;
           }
-          auto reqBody = std::make_unique<PeerRequest>();
-          auto reqBody_ = std::make_unique<VoteRequest>();
+          PeerRequest reqBody;
+          VoteRequest* reqBody_ = new VoteRequest();
           reqBody_->set_term(_state->getTerm());
           reqBody_->set_candidatename(_workerName);
-          reqBody->set_allocated_voterequest(reqBody_.get());
-          uint32_t len = reqBody->ByteSizeLong();        
-          // remember to free
+          uint32_t len = reqBody_->ByteSizeLong();  
+          reqBody.set_allocated_voterequest(reqBody_);
+      
           auto buf = new char[len + 4];
           std::memcpy(buf, &len, 4);
-          reqBody->SerializeToArray(buf + 4, len);
+          reqBody.SerializeToArray(buf + 4, len);
           boost::asio::async_write(*sock.get(),
-                  boost::asio::buffer(buf, len + 4),
-                  [sock, buf](const boost::system::error_code &err,
-                  std::size_t write_length) {
-                    if (err) {
-                  MR_LOG_WARN <<
-                  "write error: " <<
-                  err.message() << MR_EOL;
-                    }
-                    MR_LOG_TRACE << buf << MR_EOL;
-                    delete[] buf;
-                  });
-				    // bug on reading
-          auto preReadBuf = new char[4];
-          boost::asio::async_read(*sock.get(),
-                boost::asio::buffer(preReadBuf, 4),
-                [this, sock, preReadBuf](const boost::system::error_code &err,
-                    std::size_t read_length) {
+                boost::asio::buffer(buf, len+4),
+                [sock, buf,len](const boost::system::error_code &err,
+                std::size_t write_length) {
                   if (err) {
-                    MR_LOG_WARN << "write error: " << err.message() << MR_EOL;
-                  }
-                  uint32_t bodyLen = *preReadBuf;
-                  MR_LOG_TRACE << "response body length: " << bodyLen << MR_EOL;
-                  sock->close();
-                });
-          uint32_t bodyLen = *preReadBuf;
-          delete[] preReadBuf;
-          auto readBuf = new char[bodyLen+4];
-          boost::asio::async_read(*sock.get(),
-                boost::asio::buffer(readBuf, bodyLen+4),
-                [this, sock, readBuf](const boost::system::error_code &err,
-                    std::size_t read_length) {
-                  if (err) {
-                    MR_LOG_WARN <<
+                MR_LOG_WARN <<
                 "write error: " <<
                 err.message() << MR_EOL;
                   }
-                  auto resBody = std::make_unique<PeerResponse>();
-                  resBody->ParseFromString(readBuf + 4);
-                  auto term = resBody->voteresponse().term();
-                  auto vote = resBody->voteresponse().votegranted();
+                delete[] buf;
+          });
+          auto rbuf = new char[READ_BUFFER_SIZE];
+          boost::asio::async_read(*sock.get(),
+                boost::asio::buffer(rbuf,READ_BUFFER_SIZE),boost::asio::transfer_at_least(4),
+                [this,rbuf,sock](const boost::system::error_code &err,std::size_t read_length) {
+                  if (err) {
+                        MR_LOG_WARN << "last read error: " <<
+                        err.message() << MR_EOL;
+                        return;
+                  }           
+          });
+          auto num = new char[4];
+          std::memcpy(num, rbuf, 4);
+          uint32_t rlen = *num;
+          MR_LOG << rlen << MR_EOL;
+          auto str = new char[rlen];
+          std::memcpy(str, rbuf+4, rlen);
+        
+          auto resBody = std::make_unique<PeerResponse>();
+          resBody->ParseFromString(str);
+          auto term = resBody->voteresponse().term();
+          auto vote = resBody->voteresponse().votegranted();
 
-                  if (vote) {
-                    ++_voteFor;
-                    MR_LOG << "got vote for me." << MR_EOL;
-                  } else {
-                    ++_voteRejected;
-                    MR_LOG << "got vote reject me." << MR_EOL;
-                  }
-                  // should update term if self is not leader?
-                  if (term > _state->getTerm()) {
-                    _state->setTerm(term);
-                    _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
-                    MR_LOG << "update term from peer: " <<
-                      term << MR_EOL;
-                  }
-                  delete[] readBuf;
-                  sock->close();
-                });
+          MR_LOG_TRACE << "term:   " << term << "    vote:  " << vote << MR_EOL;
+          delete[] rbuf;
+          if (vote) {
+            ++_voteFor;
+            MR_LOG << "got vote for me." << MR_EOL;
+          } else {
+            ++_voteRejected;
+            MR_LOG << "got vote reject me." << MR_EOL;
+          }
+          // should update term if self is not leader?
+          if (term > _state->getTerm()) {
+            _state->setTerm(term);
+            _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
+            MR_LOG << "update term from peer: " <<
+              term << MR_EOL;
+          }
+          sock->close();              
         });
-    } // for
+    } 
     while (_voteFor + _voteRejected < count) {
       sleep(10);
     }
