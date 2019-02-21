@@ -42,15 +42,15 @@ public:
             return;
           }
           RpcConnect_ptr->start();
-          setIsFirst(0);
-          RpcConnect_ptr->socket().close();
+          setIsFirst(_isFirst);
           start();
         });
         
   }
 
-  void setRaftServer(RaftServer *server) {
+  void setRaftServer(RaftServer *server,bool isFirst) {
     _raftServer = server;
+    _isFirst = isFirst;
   }
 
   void setIsFirst(bool first) {
@@ -62,6 +62,7 @@ protected:
   boost::asio::io_context &_ctx;
   boost::asio::ip::tcp::acceptor _acceptor;
   RaftServer *_raftServer;
+  bool _isFirst;
 };
 
 }

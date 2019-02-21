@@ -32,7 +32,8 @@ public:
     
     boost::asio::ip::tcp::endpoint rpcEp(boost::asio::ip::tcp::v4(), rpcPort);
     _rpcServer = std::make_unique<RpcServer>(_ctx, rpcEp);
-    _rpcServer->setRaftServer(this);
+    _isFirst = 1;
+    _rpcServer->setRaftServer(this,_isFirst);
     
     _state->setWorkers(workerInfo);
     std::random_device rd;
@@ -53,9 +54,7 @@ public:
     auto workers = _state->getWorkers();
     _httpStatusServer->start();
     setTimer();
-    //std::thread _thread(boost::bind(&boost::asio::io_context::run, &_rpcctx));
     _ctx.run();
-    //_rpcctx.run();
     _rpcServer->start();
   }
   
@@ -80,6 +79,8 @@ protected:
 	  MR_LOG_TRACE << "self is leader, do nothing." << MR_EOL;
 	  return;
 	}
+  _isFirst = 1;
+  _rpcServer->setRaftServer(this,_isFirst);
 	startElection();
       });
   }
@@ -109,7 +110,7 @@ protected:
     using boost::asio::ip::tcp;
     tcp::resolver resolver(_ctx);
     for (const auto &worker : workers) {
-      auto eps = resolver.resolve("127.0.0.1", std::to_string(worker.port));
+      auto eps = resolver.resolve(worker.host, std::to_string(worker.port));
       auto sock = std::make_shared<tcp::socket>(_ctx);
       boost::asio::async_connect(*sock.get(), eps,
         [this, sock, worker,count](const boost::system::error_code &err, const tcp::endpoint &) {
@@ -124,6 +125,7 @@ protected:
           reqBody_->set_candidatename(_workerName);
           uint32_t len = reqBody_->ByteSizeLong();  
           reqBody.set_allocated_voterequest(reqBody_);
+          reqBody.set_type(RequestVote);
       
           auto buf = new char[len + 4];
           std::memcpy(buf, &len, 4);
@@ -212,6 +214,8 @@ protected:
 
   std::atomic_uint32_t _voteFor;
   std::atomic_uint32_t _voteRejected;
+
+  bool _isFirst;
 };
   
 }

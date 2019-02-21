@@ -46,8 +46,10 @@ public:
 
     PeerResponse resBody;
     VoteResponse* _resbody = new VoteResponse();
-    _resbody->set_term(10);
+    _resbody->set_term(term);
+    _resbody->set_votegranted(isFirst);
     resBody.set_allocated_voteresponse(_resbody);
+    resBody.set_type(RequestVote);
     uint32_t wlen = resBody.ByteSizeLong();
     auto wbuf = new char[wlen + 4];
     std::memcpy(wbuf, &wlen, 4);
@@ -63,7 +65,7 @@ public:
               err.message() << MR_EOL;
               return;
           }
-          MR_LOG << "returned    " <<  write_length << MR_EOL;
+          //MR_LOG << "returned    " <<  write_length << MR_EOL;
           delete[] wbuf;
           this->socket().close();
       });
