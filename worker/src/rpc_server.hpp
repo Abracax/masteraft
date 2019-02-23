@@ -42,7 +42,7 @@ public:
             return;
           }
           RpcConnect_ptr->start();
-          setIsFirst(_isFirst);
+          setIsFirst(0);
           start();
         });
         

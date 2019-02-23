@@ -79,8 +79,6 @@ protected:
 	  MR_LOG_TRACE << "self is leader, do nothing." << MR_EOL;
 	  return;
 	}
-  _isFirst = 1;
-  _rpcServer->setRaftServer(this,_isFirst);
 	startElection();
       });
   }
@@ -143,6 +141,7 @@ protected:
                 sock->close();         
           });
           auto rbuf = new char[READ_BUFFER_SIZE];
+          sleep(5);
           boost::asio::async_read(*sock.get(),
                 boost::asio::buffer(rbuf,READ_BUFFER_SIZE),boost::asio::transfer_at_least(4),
                 [rbuf,sock,this,count](const boost::system::error_code &err,std::size_t read_length) {
@@ -175,7 +174,7 @@ protected:
                 // should update term if self is not leader?
                 if (term > _state->getTerm()) {
                   _state->setTerm(term);
-                  _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
+                  _httpStatusServer->setRaftServer(this,_state->getRole(),term);
                   MR_LOG << "update term from peer: " <<
                     term << MR_EOL;
                 }
@@ -185,7 +184,9 @@ protected:
                 if (_voteFor >= (count + 1) / 2) {
                   MR_LOG << "become leader." << MR_EOL;
                   _state->setRole(Role::Leader);
-                  _httpStatusServer->setRaftServer(this,_state->getRole(),_state->getTerm());
+                  _httpStatusServer->setRaftServer(this,Role::Leader,_state->getTerm());
+                  _isFirst = 1;
+                  _rpcServer->setRaftServer(this,_isFirst);
                 } else {
                   MR_LOG << "vote failed." << MR_EOL;
                 }

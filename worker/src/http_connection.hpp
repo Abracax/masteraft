@@ -37,7 +37,7 @@ public:
         std::string http_header = _request.substr(0, _request.find("\r\n"));
         std::regex match("(GET /) (.*)");
         if ( std::regex_match(http_header, match) ){
-            char str[] = "HTTP/1.0 200 OK\r\nContent-Type:application/json\r\n";
+            char str[] = "HTTP/1.0 200 OK\r\n";
             std::ostringstream ss;
             ss<< str << "{\"role\":\"" << getRoleTypeString(_role) << "\"," <<"\"term\""<< ":" << _term << "}" << "\r\n\r\n";
             std::string raft_state_ = ss.str();
