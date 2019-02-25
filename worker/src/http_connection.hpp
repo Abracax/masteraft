@@ -28,7 +28,7 @@ public:
     // else, return 404 with {} as body.
     
     auto shared_ptr = shared_from_this();
-    boost::asio::async_read_until(_socket,boost::asio::dynamic_buffer(_request),"\r\n\r\n",
+    boost::asio::async_read_until(_socket,boost::asio::dynamic_buffer(_request),"\r\n",
                             [shared_ptr, this](const boost::system::error_code& err, size_t len){
         if(err){
             MR_LOG<<"request receiving err:"<<err.message()<<"\n" << MR_EOL;
@@ -39,8 +39,11 @@ public:
         if ( std::regex_match(http_header, match) ){
             char str[] = "HTTP/1.0 200 OK\r\n";
             std::ostringstream ss;
-            ss<< str << "{\"role\":\"" << getRoleTypeString(_role) << "\"," <<"\"term\""<< ":" << _term << "}" << "\r\n\r\n";
-            std::string raft_state_ = ss.str();
+            ss<< "{\"role\":\"" << getRoleTypeString(_role) << "\"," <<"\"term\""<< ":" << _term << "}" << "\r\n\r\n";
+            std::string res_str = ss.str();
+            std::ostringstream ss1;
+            ss1<< str << "Content-Length: " << res_str.length() << "\r\n\r\n" << res_str;
+            std::string raft_state_=ss1.str();
             boost::asio::async_write(_socket, boost::asio::buffer(raft_state_), [shared_ptr, this](const boost::system::error_code& err, size_t len) {
                 _socket.close();
             });

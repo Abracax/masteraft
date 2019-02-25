@@ -6,7 +6,9 @@
         <br/>HTTP port: {{workers['Server']['serverHTTPPort']}}
         <br/>IP address: {{workers['Server']['serverip']}}
       </p>
-      <button>get</button>
+      <div class="myterm" ref="myterm">Term:</div>
+      <div class="myrole" ref="myrole">Role:</div>
+      <button v-on:click="sendReq(workers['Server']['serverip'],workers['Server']['serverHTTPPort'])">get</button>
     </div>
     <h2>All Servers</h2>
     <div v-for="server in allservers" v-bind:key="server">
@@ -19,20 +21,44 @@
 </template>
 
 <script>
+let workers = require('../../../../config/config.json');
 export default {
   name: 'Servers',
   props: ['server'],
   data:
     function(){
-    let workers = require('../../../../config/config.json');
     return {
       workers: workers,
       allservers:workers['AllServers']
     }
   },
   methods: {
-    curl: function () {
-      this.message = this.message.split('').reverse().join('')
+    sendReq: function (ip,port) {
+      const http = require('http');
+      let options = {
+        "method": "GET",
+        "hostname": ip,
+        "port": port.toString(),
+      };
+      let data;
+      var req = http.request(options, function (res) {
+      var chunks = [];
+      res.on("data", function (chunk) {
+        chunks.push(chunk);
+      });
+      res.on("end", function () {
+        data = Buffer.concat(chunks);
+      });
+      });
+      req.end();
+      let res = JSON.parse(data);
+      console.log(res['term']);
+      this.$refs.myterm.innerText=`Term : {res['term']}`;
+      this.$refs.myrole.innerText= `Role : {res['role']}`;
+      return {
+        role:res['role'],
+        term:res['term']
+      }
   }
 }
 }
@@ -40,5 +66,7 @@ export default {
 </script>
 
 <style scoped>
-
+p{
+  font-size:16px;
+}
 </style>
