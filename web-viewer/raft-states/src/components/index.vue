@@ -42,19 +42,20 @@ export default {
       };
       let data;
       var req = http.request(options, function (res) {
-      var chunks = [];
-      res.on("data", function (chunk) {
-        chunks.push(chunk);
-      });
-      res.on("end", function () {
-        data = Buffer.concat(chunks);
-      });
+        var chunks = [];
+        res.on("data", function (chunk) {
+          chunks.push(chunk);
+        });
+        res.on("end", function () {
+          data = Buffer.concat(chunks);
+          let res = JSON.parse(data);
+          this.$refs.myterm.innerText=`Term : {res['term']}`;
+          this.$refs.myrole.innerText= `Role : {res['role']}`;
+        });
       });
       req.end();
-      let res = JSON.parse(data);
-      console.log(res['term']);
-      this.$refs.myterm.innerText=`Term : {res['term']}`;
-      this.$refs.myrole.innerText= `Role : {res['role']}`;
+      //this.$refs.myterm.innerText=`Term : {res['term']}`;
+      //this.$refs.myrole.innerText= `Role : {res['role']}`;
       return {
         role:res['role'],
         term:res['term']

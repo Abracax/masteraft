@@ -37,12 +37,13 @@ public:
         std::string http_header = _request.substr(0, _request.find("\r\n"));
         std::regex match("(GET /) (.*)");
         if ( std::regex_match(http_header, match) ){
-            char str[] = "HTTP/1.0 200 OK\r\n";
+            char str[] = "HTTP/1.0 200 OK\r\nAccess-Control-Allow-Origin: *\r\n";
             std::ostringstream ss;
             ss<< "{\"role\":\"" << getRoleTypeString(_role) << "\"," <<"\"term\""<< ":" << _term << "}" << "\r\n\r\n";
             std::string res_str = ss.str();
             std::ostringstream ss1;
-            ss1<< str << "Content-Length: " << res_str.length() << "\r\n\r\n" << res_str;
+            ss1<< str << "Content-Length: " << res_str.length() << "\r\n\r\n" 
+                << res_str ;
             std::string raft_state_=ss1.str();
             boost::asio::async_write(_socket, boost::asio::buffer(raft_state_), [shared_ptr, this](const boost::system::error_code& err, size_t len) {
                 _socket.close();
