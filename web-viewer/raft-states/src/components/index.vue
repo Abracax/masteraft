@@ -6,9 +6,10 @@
         <br/>HTTP port: {{workers['Server']['serverHTTPPort']}}
         <br/>IP address: {{workers['Server']['serverip']}}
       </p>
-      <div class="myterm" ref="myterm">Term:</div>
-      <div class="myrole" ref="myrole">Role:</div>
-      <button v-on:click="sendReq(workers['Server']['serverip'],workers['Server']['serverHTTPPort'])">get</button>
+      <div>
+      <p class="myterm" >Term:{{workers['Server']['term']}}<br/>Role:{{workers['Server']['role']}}</p>
+      <button v-on:click="sendReq(workers['Server'])">get</button>
+      </div>
     </div>
     <h2>All Servers</h2>
     <div v-for="server in allservers" v-bind:key="server">
@@ -16,12 +17,17 @@
         <br/>HTTP port:{{ server["serverHTTPPort"] }}
         <br/>IP address:{{ server['serverip'] }}
       </p>
+      <div>
+      <p class="myterm" >Term:{{server['term']}}<br/>Role:{{server['role']}}</p>
+      <button v-on:click="sendReq(server)">get</button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 let workers = require('../../../../config/config.json');
+let role,term;
 export default {
   name: 'Servers',
   props: ['server'],
@@ -29,37 +35,47 @@ export default {
     function(){
     return {
       workers: workers,
-      allservers:workers['AllServers']
+      allservers:workers['AllServers'],
+      //Term:term,
+      //Role:role
     }
   },
   methods: {
-    sendReq: function (ip,port) {
+    sendReq: function (server) {
+      this.$forceUpdate();
       const http = require('http');
       let options = {
         "method": "GET",
-        "hostname": ip,
-        "port": port.toString(),
+        "hostname": server['serverip'],
+        "port": server["serverHTTPPort"].toString(),
       };
-      let data;
+      let sendData;
       var req = http.request(options, function (res) {
         var chunks = [];
         res.on("data", function (chunk) {
           chunks.push(chunk);
         });
+        res.on('error',function(error){
+          return;
+        });
         res.on("end", function () {
-          data = Buffer.concat(chunks);
-          let res = JSON.parse(data);
-          this.$refs.myterm.innerText=`Term : {res['term']}`;
-          this.$refs.myrole.innerText= `Role : {res['role']}`;
+          sendData = Buffer.concat(chunks);
+          let ret = JSON.parse(sendData);
+          //console.log(ret);
+          //console.log(`Term:${ret['term']}`);
+          //console.log(`Role:${ret['role']}`);
+          term = ret['term'];
+          role = ret['role'];
+          server['role'] = ret['role'];
+          server['term'] = ret['term'];
         });
       });
+      this.$forceUpdate();
+      //console.log(server);     
+      //this.Role = role;
+      //this.Term = term;
       req.end();
-      //this.$refs.myterm.innerText=`Term : {res['term']}`;
-      //this.$refs.myrole.innerText= `Role : {res['role']}`;
-      return {
-        role:res['role'],
-        term:res['term']
-      }
+      return server;
   }
 }
 }
@@ -68,6 +84,6 @@ export default {
 
 <style scoped>
 p{
-  font-size:16px;
+  font-size:10px;
 }
 </style>
