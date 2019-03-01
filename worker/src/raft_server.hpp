@@ -128,6 +128,7 @@ protected:
           auto buf = new char[len + 4];
           std::memcpy(buf, &len, 4);
           reqBody.SerializeToArray(buf + 4, len);
+          //delete[] reqBody_;
           boost::asio::async_write(*sock.get(),
                 boost::asio::buffer(buf, len+4),
                 [sock, buf,len,this](const boost::system::error_code &err,
@@ -140,22 +141,31 @@ protected:
                 delete[] buf;
                 sock->close();         
           });
+          auto prebuf = new char[4];
           auto rbuf = new char[READ_BUFFER_SIZE];
-          sleep(5);
+          //sleep(5);
           boost::asio::async_read(*sock.get(),
-                boost::asio::buffer(rbuf,READ_BUFFER_SIZE),boost::asio::transfer_at_least(4),
-                [rbuf,sock,this,count](const boost::system::error_code &err,std::size_t read_length) {
+                boost::asio::buffer(prebuf,READ_BUFFER_SIZE),boost::asio::transfer_exactly(4),
+                [rbuf,prebuf,sock,this,count](const boost::system::error_code &err,std::size_t read_length) {
                   if (err) {
-                        MR_LOG_WARN << "last read error: " <<
+                        MR_LOG_WARN << "rpc read 4 bytes error: " <<
                         err.message() << MR_EOL;
                         return;
                   } 
                   auto num = new char[4];
-                std::memcpy(num, rbuf, 4);
-                uint32_t len = *num;
-                MR_LOG << read_length << MR_EOL;
-                auto str = new char[len];
-                std::memcpy(str, rbuf+4, len);
+                  std::memcpy(num, prebuf, 4);
+                  uint32_t len = *num;
+                  MR_LOG << read_length << MR_EOL;
+                  auto str = new char[len];
+                  boost::asio::async_read(*sock.get(),
+                  boost::asio::buffer(prebuf,READ_BUFFER_SIZE),boost::asio::transfer_exactly(len),
+              [rbuf,sock,this,count,len,str](const boost::system::error_code &err,std::size_t read_length) {
+                if (err) {
+                        MR_LOG_WARN << "rpc read full message error: " <<
+                        err.message() << MR_EOL;
+                        return;
+                  } 
+                  std::memcpy(str, rbuf, len);
               
                 auto resBody = std::make_unique<PeerResponse>();
                 resBody->ParseFromString(str);
@@ -191,7 +201,8 @@ protected:
                   MR_LOG << "vote failed." << MR_EOL;
                 }
                 delete[] rbuf;
-                sock->close();          
+                sock->close(); 
+              });         
           });
         });
     } 

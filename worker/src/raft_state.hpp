@@ -23,8 +23,8 @@ class RaftState final
 {
 public:
   RaftState()
-    : _role({Role::Candidate})
-    , _term({0})
+    : _role(Role::Candidate)
+    , _term(0)
   {}
 
 public:

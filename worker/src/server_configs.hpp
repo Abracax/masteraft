@@ -26,12 +26,14 @@ struct ConfigServer
 class ServerConfigs
 {
 public:
-    ServerConfigs()
-        :_serverData(){}
+    ServerConfigs(const std::string &configFileName)
+        : _serverData()
+        , _configFileName(configFileName)
+        {}
 
 public:
     ConfigServer readJson() {
-        std::ifstream t("../config/config.json");
+        std::ifstream t(_configFileName.c_str());
         std::stringstream buffer;
         buffer << t.rdbuf();
         std::string str = buffer.str();
@@ -70,6 +72,7 @@ public:
 
     virtual ~ServerConfigs(){}
 private:
+    std::string _configFileName;
     ConfigServer _serverData;
     std::vector<WorkerID> _workers;
 };

@@ -13,8 +13,16 @@ int main(int argc, char *argv[])
   using namespace std;
   using namespace mr;
   using namespace boost::asio;
+  std::string fileName;
+  if(argc != 2){
+    MR_LOG_WARN << "Please input a valid file name" << MR_EOL;
+    return 1;
+  } 
+  else{
+    fileName = argv[1];
+  }
 
-  auto readFile = make_unique<ServerConfigs>();
+  auto readFile = make_unique<ServerConfigs>(fileName);
   ConfigServer server_configs = readFile->readJson();
   std::vector<WorkerID> workerInfo = readFile->GetAllWorkerInfo();
   auto server = make_unique<RaftServer>(server_configs.serverName, server_configs.serverRPCPort, server_configs.serverHTTPPort,workerInfo);

@@ -1,0 +1,28 @@
+{ "Server":
+    {
+         "serverName" : "b",
+        "serverip": "127.0.0.1",
+        "serverHTTPPort" : 3333,
+        "serverRPCPort" : 3300
+    },
+    "AllServers": [
+        {
+            "serverName" : "a",
+            "serverip": "127.0.0.1",
+            "serverHTTPPort" : 2222,
+            "serverRPCPort" : 2200
+        },
+        {
+            "serverName" : "b",
+            "serverip": "127.0.0.1",
+            "serverHTTPPort" : 3333,
+            "serverRPCPort" : 3300
+        },
+        {
+            "serverName" : "c",
+            "serverip": "127.0.0.1",
+            "serverHTTPPort" : 4444,
+            "serverRPCPort" : 4400
+        }
+    ]
+}
