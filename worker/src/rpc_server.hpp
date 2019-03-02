@@ -33,7 +33,7 @@ public:
 
 public:
   void start() {
-    MR_LOG << "RpcServer started." << MR_EOL;
+//    MR_LOG << "RpcServer started." << MR_EOL;
     auto RpcConnect_ptr = std::make_shared<RpcConnection>(_ctx);
     _acceptor.async_accept(RpcConnect_ptr->socket(),
         [RpcConnect_ptr, this](const boost::system::error_code &err) {

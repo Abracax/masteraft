@@ -24,7 +24,7 @@ public:
 
   void start()
   {
-    MR_LOG << "HttpStatusServer started." << MR_EOL;
+//    MR_LOG << "HttpStatusServer started." << MR_EOL;
     auto p = std::make_shared<HttpConnection>(_ctx);
     
     _acceptor.async_accept(p->socket(),

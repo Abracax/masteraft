@@ -14,11 +14,12 @@ public:
   RpcConnection(boost::asio::io_context &ctx) : BasicConnection(ctx) {}
 
   void start() override {
+    auto shared_ptr = shared_from_this();
     auto buf = new char[4];
 
     boost::asio::async_read(
         socket(), boost::asio::buffer(buf, 4), boost::asio::transfer_exactly(4),
-        [buf, this](const boost::system::error_code &err,
+        [shared_ptr, buf, this](const boost::system::error_code &err,
                     std::size_t read_length) {
           if (err) {
             MR_LOG_WARN << "rpc read first 4 bytes error: " << err.message()
@@ -34,7 +35,7 @@ public:
           boost::asio::async_read(
               socket(), boost::asio::buffer(readBuf, len),
               boost::asio::transfer_exactly(len),
-              [readBuf, this, len](const boost::system::error_code &err,
+              [shared_ptr, readBuf, this, len](const boost::system::error_code &err,
                                    std::size_t read_length) {
                 if (err) {
                   MR_LOG_WARN
@@ -65,7 +66,7 @@ public:
 
                 boost::asio::async_write(
                     socket(), boost::asio::buffer(wbuf, wlen + 4),
-                    [wbuf, wlen, this](const boost::system::error_code &err,
+                    [shared_ptr, wbuf, wlen, this](const boost::system::error_code &err,
                                        std::size_t write_length) {
                       if (err) {
                         MR_LOG_WARN << "write error: " << err.message()
