@@ -41,8 +41,10 @@ public:
             MR_LOG << "accept error: " << err.message() << MR_EOL;
             return;
           }
+          MR_LOG_TRACE << "accepted." << MR_EOL;
           RpcConnect_ptr->start();
-          setIsFirst(0);
+          //setIsFirst(0);
+          MR_LOG_TRACE << "start returned." << MR_EOL;
           start();
         });
         
