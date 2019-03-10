@@ -26,6 +26,8 @@ public:
   RaftServer(const std::string &workerName, uint16_t rpcPort,
              uint16_t statusPort, std::vector<WorkerID> &workerInfo)
       : _workerName(workerName)
+      , _ctx(1)
+      , _timer(std::make_unique<boost::asio::steady_timer>(_ctx))
   {
     boost::asio::ip::tcp::endpoint httpEp(boost::asio::ip::tcp::v4(),
                                           statusPort);
@@ -68,8 +70,7 @@ protected:
   {
     uint32_t time = (*_dist)(*_gen);
     MR_LOG_TRACE << "timer time: " << time << MR_EOL;
-    _timer.reset(new boost::asio::steady_timer{
-        _ctx, boost::asio::chrono::milliseconds(time)});
+    _timer->expires_after(boost::asio::chrono::milliseconds(time));
     _timer->async_wait([this](const boost::system::error_code &err) {
       if (err)
       {
@@ -134,11 +135,11 @@ protected:
               return;
             }
             PeerRequest reqBody;
-            VoteRequest *reqBody_ = new VoteRequest();
-            reqBody_->set_term(_state->getTerm());
-            reqBody_->set_candidatename(_workerName);
-            uint32_t len = reqBody_->ByteSizeLong();
-            reqBody.set_allocated_voterequest(reqBody_);
+            VoteRequest *reqbody = new VoteRequest();
+            reqbody->set_term(_state->getTerm());
+            reqbody->set_candidatename(_workerName);
+            uint32_t len = reqbody->ByteSizeLong();
+            reqBody.set_allocated_voterequest(reqbody);
             reqBody.set_type(RequestVote);
 
             auto buf = new char[len + 4];
@@ -152,8 +153,8 @@ protected:
                   {
                     MR_LOG_WARN << "write error: " << err.message() << MR_EOL;
                   }
-                  
-                  MR_LOG_TRACE << "write len: " << len << MR_EOL;
+
+                  //MR_LOG_TRACE << "write len: " << len << MR_EOL;
 
                   auto prebuf = new char[4];
                   auto rbuf = new char[READ_BUFFER_SIZE];
@@ -176,10 +177,10 @@ protected:
                         std::memcpy(num, prebuf, 4);
                         uint32_t len = *num;
 
-                        MR_LOG_TRACE << "read header len: " << len << MR_EOL;
+                        //MR_LOG_TRACE << "read header len: " << len << MR_EOL;
 
                         auto str = new char[len];
-                        
+
                         boost::asio::async_read(
                             *sock.get(), boost::asio::buffer(prebuf, len),
                             boost::asio::transfer_exactly(len),
@@ -193,16 +194,16 @@ protected:
                                 return;
                               }
                               std::memcpy(str, rbuf, len);
-                              MR_LOG << "read message length:" << read_length
-                                     << MR_EOL;
+                              //MR_LOG << "read message length:" << read_length
+                              //<< MR_EOL;
 
                               auto resBody = std::make_unique<PeerResponse>();
-                              resBody->ParseFromString(str);
+                              resBody->ParseFromArray(str,len);
                               auto term = resBody->voteresponse().term();
                               auto vote = resBody->voteresponse().votegranted();
 
                               MR_LOG_TRACE << "term:   " << term
-                                           << "vote:  " << vote << MR_EOL;
+                                           << "   vote:  " << vote << MR_EOL;
 
                               if (vote)
                               {
@@ -223,7 +224,7 @@ protected:
                                 MR_LOG << "update term from peer: " << term
                                        << MR_EOL;
                               }
-                              while (_voteFor + _voteRejected < count)
+                              while (_voteFor + _voteRejected < count - 1)
                               {
                                 sleep(10);
                               }
@@ -240,16 +241,14 @@ protected:
                               {
                                 MR_LOG << "vote failed." << MR_EOL;
                               }
-                              sock->close();
-                              
+                              // sock->close();
                             });
                       });
-                      delete[] rbuf;
-                      MR_LOG_TRACE << "write completed." << MR_EOL;
+                  //delete[] rbuf;
+                  //MR_LOG_TRACE << "write completed." << MR_EOL;
                 });
             delete[] buf;
             //delete reqBody_;
-            
           });
     }
   }
@@ -259,7 +258,6 @@ protected:
   uint16_t _statusPort;
   std::string _workerName;
   boost::asio::io_context _ctx;
-  boost::asio::io_context _rpcctx;
 
   std::unique_ptr<HttpStatusServer> _httpStatusServer;
   std::unique_ptr<HttpConnection> _httpConnection;
@@ -268,7 +266,7 @@ protected:
   std::unique_ptr<RaftState> _state{new RaftState{}};
   std::unique_ptr<std::mt19937> _gen{nullptr};
   std::unique_ptr<std::uniform_int_distribution<>> _dist{nullptr};
-  std::unique_ptr<boost::asio::steady_timer> _timer{nullptr};
+  std::unique_ptr<boost::asio::steady_timer> _timer;
 
   std::atomic_uint32_t _voteFor;
   std::atomic_uint32_t _voteRejected;

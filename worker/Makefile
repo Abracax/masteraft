@@ -1,9 +1,9 @@
 all: worker_bin
 
-CXXFLAGS=-lpthread -lboost_system -lprotobuf -O2 -g -std=c++14
+CXXFLAGS=-lpthread -lboost_system -lprotobuf -O2 -std=c++14 -g -fsanitize=address
 
 worker_bin: src/*.cpp src/*.hpp protos
-	g++ src/*.cpp build/src/proto/*.cc -Ibuild ${CXXFLAGS} -o worker_bin
+	clang++ src/*.cpp build/src/proto/*.cc -Ibuild ${CXXFLAGS} -o worker_bin
 
 protos: src/proto/*.proto
 	protoc src/proto/*.proto --cpp_out=build

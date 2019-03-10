@@ -15,13 +15,12 @@ class RaftServer;
  * First 4 bytes is a little-endian integer, indicates size of body.
  * then is a single pb bin struct act as body.
  */
-class RpcServer     
+class RpcServer
 {
 public:
   RpcServer(boost::asio::io_context &ctx,
-	    boost::asio::ip::tcp::endpoint &ep)
-    : _ctx(ctx)
-    , _acceptor(_ctx, ep)
+            boost::asio::ip::tcp::endpoint &ep)
+      : _ctx(ctx), _acceptor(_ctx, ep)
   {
     setIsFirst(1);
   }
@@ -32,30 +31,33 @@ public:
   virtual ~RpcServer() {}
 
 public:
-  void start() {
-//    MR_LOG << "RpcServer started." << MR_EOL;
+  void start()
+  {
+    //    MR_LOG << "RpcServer started." << MR_EOL;
     auto RpcConnect_ptr = std::make_shared<RpcConnection>(_ctx);
     _acceptor.async_accept(RpcConnect_ptr->socket(),
-        [RpcConnect_ptr, this](const boost::system::error_code &err) {
-          if (err) {
-            MR_LOG << "accept error: " << err.message() << MR_EOL;
-            return;
-          }
-          MR_LOG_TRACE << "accepted." << MR_EOL;
-          RpcConnect_ptr->start();
-          //setIsFirst(0);
-          MR_LOG_TRACE << "start returned." << MR_EOL;
-          start();
-        });
-        
+                           [RpcConnect_ptr, this](const boost::system::error_code &err) {
+                             if (err)
+                             {
+                               MR_LOG << "accept error: " << err.message() << MR_EOL;
+                               return;
+                             }
+                             MR_LOG_TRACE << "accepted." << MR_EOL;
+                             RpcConnect_ptr->start();
+                             setIsFirst(0);
+                             MR_LOG_TRACE << "start returned." << MR_EOL;
+                             start();
+                           });
   }
 
-  void setRaftServer(RaftServer *server,bool isFirst) {
+  void setRaftServer(RaftServer *server, bool isFirst)
+  {
     _raftServer = server;
     _isFirst = isFirst;
   }
 
-  void setIsFirst(bool first) {
+  void setIsFirst(bool first)
+  {
     auto RpcConnect_ptr = std::make_shared<RpcConnection>(_ctx);
     RpcConnect_ptr->setIsFirst(first);
   }
@@ -67,6 +69,6 @@ protected:
   bool _isFirst;
 };
 
-}
+} // namespace mr
 
 #endif

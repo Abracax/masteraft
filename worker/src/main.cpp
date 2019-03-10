@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <stdexcept>
 #include "raft_server.hpp"
 #include "server_configs.hpp"
 
@@ -26,6 +27,11 @@ int main(int argc, char *argv[])
   ConfigServer server_configs = readFile->readJson();
   std::vector<WorkerID> workerInfo = readFile->GetAllWorkerInfo();
   auto server = make_unique<RaftServer>(server_configs.serverName, server_configs.serverRPCPort, server_configs.serverHTTPPort,workerInfo);
-  server->start();
+  try {
+     server->start();
+  } catch (const std::exception &e) {
+    std::cout << e.what() << std::endl;
+  }
+ 
   return 0;
 }

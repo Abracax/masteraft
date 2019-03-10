@@ -26,7 +26,6 @@ enum class Role
   Leader = 1,
   Follower = 2
 };
-
 }
 
 #endif

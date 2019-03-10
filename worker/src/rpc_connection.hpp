@@ -6,22 +6,26 @@
 #include <memory>
 #include <string>
 
-namespace mr {
+namespace mr
+{
 
 class RpcConnection : public std::enable_shared_from_this<RpcConnection>,
-                      public BasicConnection {
+                      public BasicConnection
+{
 public:
   RpcConnection(boost::asio::io_context &ctx) : BasicConnection(ctx) {}
 
-  void start() override {
+  void start() override
+  {
     auto shared_ptr = shared_from_this();
     auto buf = new char[4];
 
     boost::asio::async_read(
         socket(), boost::asio::buffer(buf, 4), boost::asio::transfer_exactly(4),
         [shared_ptr, buf, this](const boost::system::error_code &err,
-                    std::size_t read_length) {
-          if (err) {
+                                std::size_t read_length) {
+          if (err)
+          {
             MR_LOG_WARN << "rpc read first 4 bytes error: " << err.message()
                         << MR_EOL;
             return;
@@ -30,28 +34,29 @@ public:
           auto num = new char[4];
           std::memcpy(num, buf, 4);
           uint32_t len = *num;
-          MR_LOG << "rpc pre-read length is: " << len << MR_EOL;
+          //MR_LOG << "rpc pre-read length is: " << len << MR_EOL;
           auto readBuf = new char[len];
           boost::asio::async_read(
               socket(), boost::asio::buffer(readBuf, len),
               boost::asio::transfer_exactly(len),
               [shared_ptr, readBuf, this, len](const boost::system::error_code &err,
-                                   std::size_t read_length) {
-                if (err) {
+                                               std::size_t read_length) {
+                if (err)
+                {
                   MR_LOG_WARN
                       << "rpc read full message error: " << err.message()
                       << MR_EOL;
                   return;
                 }
 
-                auto str = new char[len];
+                auto str = new char[len]; // FIXME: delete
                 std::memcpy(str, readBuf, len);
 
                 auto reqBody = std::make_unique<PeerRequest>();
-                reqBody->ParseFromString(str);
+                reqBody->ParseFromArray(str,len);
                 auto term = reqBody->voterequest().term();
 
-                MR_LOG << " received" << MR_EOL;
+                //MR_LOG << " received" << MR_EOL;
 
                 PeerResponse resBody;
                 VoteResponse *_resbody = new VoteResponse();
@@ -67,20 +72,20 @@ public:
                 boost::asio::async_write(
                     socket(), boost::asio::buffer(wbuf, wlen + 4),
                     [shared_ptr, wbuf, wlen, this](const boost::system::error_code &err,
-                                       std::size_t write_length) {
-                      if (err) {
+                                                   std::size_t write_length) {
+                      if (err)
+                      {
                         MR_LOG_WARN << "write error: " << err.message()
                                     << MR_EOL;
                         return;
                       }
-                      MR_LOG << "returned    " << write_length << MR_EOL;
+                      //MR_LOG << "returned    " << write_length << MR_EOL;
                       delete[] wbuf;
                       this->socket().close();
                     });
               });
-              
+              delete[] buf;
         });
-    delete[] buf;
   }
   void setIsFirst(bool first) { isFirst = first; }
 
