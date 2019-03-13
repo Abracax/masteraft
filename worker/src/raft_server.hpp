@@ -154,10 +154,8 @@ protected:
                     MR_LOG_WARN << "write error: " << err.message() << MR_EOL;
                   }
 
-                  //MR_LOG_TRACE << "write len: " << len << MR_EOL;
-
                   auto prebuf = new char[4];
-                  //auto rbuf = new char[READ_BUFFER_SIZE];
+
                   bool rpcReadComplete = false;
 
                   boost::asio::async_read(
@@ -176,8 +174,6 @@ protected:
 
                         uint32_t len = *prebuf;
 
-                        //MR_LOG_TRACE << "read header len: " << len << MR_EOL;
-
                         auto str = new char[len];
 
                         boost::asio::async_read(
@@ -192,10 +188,6 @@ protected:
                                             << err.message() << MR_EOL;
                                 return;
                               }
-
-                              //MR_LOG << "read message length:" << read_length
-                              //<< MR_EOL;
-
                               auto resBody = std::make_unique<PeerResponse>();
                               resBody->ParseFromArray(str, len);
                               auto term = resBody->voteresponse().term();
@@ -241,12 +233,10 @@ protected:
                                 MR_LOG << "vote failed." << MR_EOL;
                               }
                               delete[] str;
-                              //delete[] prebuf;
                             });
                         delete[] prebuf;
                       });
                   delete[] buf;
-                  //MR_LOG_TRACE << "write completed." << MR_EOL;
                 });
           });
     }
