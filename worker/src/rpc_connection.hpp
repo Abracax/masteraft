@@ -31,16 +31,14 @@ public:
             return;
           }
 
-          auto num = new char[4];
-          std::memcpy(num, buf, 4);
-          uint32_t len = *num;
-          //MR_LOG << "rpc pre-read length is: " << len << MR_EOL;
+          uint32_t len = *buf;
           auto readBuf = new char[len];
+          //MR_LOG << "rpc pre-read length is: " << len << MR_EOL;
           boost::asio::async_read(
               socket(), boost::asio::buffer(readBuf, len),
               boost::asio::transfer_exactly(len),
-              [shared_ptr, readBuf, this, len](const boost::system::error_code &err,
-                                               std::size_t read_length) {
+              [shared_ptr, readBuf, this, len, buf](const boost::system::error_code &err,
+                                                    std::size_t read_length) {
                 if (err)
                 {
                   MR_LOG_WARN
@@ -53,7 +51,7 @@ public:
                 std::memcpy(str, readBuf, len);
 
                 auto reqBody = std::make_unique<PeerRequest>();
-                reqBody->ParseFromArray(str,len);
+                reqBody->ParseFromArray(str, len);
                 auto term = reqBody->voterequest().term();
 
                 //MR_LOG << " received" << MR_EOL;
@@ -71,8 +69,8 @@ public:
 
                 boost::asio::async_write(
                     socket(), boost::asio::buffer(wbuf, wlen + 4),
-                    [shared_ptr, wbuf, wlen, this](const boost::system::error_code &err,
-                                                   std::size_t write_length) {
+                    [shared_ptr, wbuf, wlen, this, readBuf, str](const boost::system::error_code &err,
+                                                                 std::size_t write_length) {
                       if (err)
                       {
                         MR_LOG_WARN << "write error: " << err.message()
@@ -81,10 +79,13 @@ public:
                       }
                       //MR_LOG << "returned    " << write_length << MR_EOL;
                       delete[] wbuf;
+                      delete[] readBuf;
+                      delete[] str;
+
                       this->socket().close();
                     });
+                delete[] buf;
               });
-              delete[] buf;
         });
   }
   void setIsFirst(bool first) { isFirst = first; }

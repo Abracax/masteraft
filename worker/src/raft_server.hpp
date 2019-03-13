@@ -25,9 +25,7 @@ class RaftServer
 public:
   RaftServer(const std::string &workerName, uint16_t rpcPort,
              uint16_t statusPort, std::vector<WorkerID> &workerInfo)
-      : _workerName(workerName)
-      , _ctx(1)
-      , _timer(std::make_unique<boost::asio::steady_timer>(_ctx))
+      : _workerName(workerName), _ctx(1), _timer(std::make_unique<boost::asio::steady_timer>(_ctx))
   {
     boost::asio::ip::tcp::endpoint httpEp(boost::asio::ip::tcp::v4(),
                                           statusPort);
@@ -138,13 +136,15 @@ protected:
             VoteRequest *reqbody = new VoteRequest();
             reqbody->set_term(_state->getTerm());
             reqbody->set_candidatename(_workerName);
-            uint32_t len = reqbody->ByteSizeLong();
+
             reqBody.set_allocated_voterequest(reqbody);
             reqBody.set_type(RequestVote);
+            uint32_t len = reqBody.ByteSizeLong();
 
             auto buf = new char[len + 4];
             std::memcpy(buf, &len, 4);
             reqBody.SerializeToArray(buf + 4, len);
+
             boost::asio::async_write(
                 *sock.get(), boost::asio::buffer(buf, len + 4),
                 [sock, buf, len, this, count](const boost::system::error_code &err,
@@ -157,13 +157,13 @@ protected:
                   //MR_LOG_TRACE << "write len: " << len << MR_EOL;
 
                   auto prebuf = new char[4];
-                  auto rbuf = new char[READ_BUFFER_SIZE];
+                  //auto rbuf = new char[READ_BUFFER_SIZE];
                   bool rpcReadComplete = false;
 
                   boost::asio::async_read(
                       *sock.get(), boost::asio::buffer(prebuf, 4),
                       boost::asio::transfer_exactly(4),
-                      [rbuf, prebuf, sock, this,
+                      [prebuf, sock, this,
                        count](const boost::system::error_code &err,
                               std::size_t read_length) {
                         if (err)
@@ -173,18 +173,17 @@ protected:
                               << MR_EOL;
                           return;
                         }
-                        auto num = new char[4];
-                        std::memcpy(num, prebuf, 4);
-                        uint32_t len = *num;
+
+                        uint32_t len = *prebuf;
 
                         //MR_LOG_TRACE << "read header len: " << len << MR_EOL;
 
                         auto str = new char[len];
 
                         boost::asio::async_read(
-                            *sock.get(), boost::asio::buffer(prebuf, len),
+                            *sock.get(), boost::asio::buffer(str, len),
                             boost::asio::transfer_exactly(len),
-                            [rbuf, sock, this, count, len,
+                            [sock, this, count, len, prebuf,
                              str](const boost::system::error_code &err,
                                   std::size_t read_length) {
                               if (err)
@@ -193,12 +192,12 @@ protected:
                                             << err.message() << MR_EOL;
                                 return;
                               }
-                              std::memcpy(str, rbuf, len);
+
                               //MR_LOG << "read message length:" << read_length
                               //<< MR_EOL;
 
                               auto resBody = std::make_unique<PeerResponse>();
-                              resBody->ParseFromArray(str,len);
+                              resBody->ParseFromArray(str, len);
                               auto term = resBody->voteresponse().term();
                               auto vote = resBody->voteresponse().votegranted();
 
@@ -241,14 +240,14 @@ protected:
                               {
                                 MR_LOG << "vote failed." << MR_EOL;
                               }
-                              // sock->close();
+                              delete[] str;
+                              //delete[] prebuf;
                             });
+                        delete[] prebuf;
                       });
-                  //delete[] rbuf;
+                  delete[] buf;
                   //MR_LOG_TRACE << "write completed." << MR_EOL;
                 });
-            delete[] buf;
-            //delete reqBody_;
           });
     }
   }
