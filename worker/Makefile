@@ -8,6 +8,6 @@ worker_bin: src/*.cpp src/*.hpp protos
 protos: src/proto/*.proto
 	protoc src/proto/*.proto --cpp_out=build
 
-.PHONY: clean
-
-clean:
+clean: 
+	-rm -f build/src/proto/*.pb.cc build/src/proto/*.pb.h worker_bin
+	-rm -rf worker_bin.dSYM

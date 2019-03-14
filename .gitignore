@@ -3,3 +3,7 @@ build/
 *~
 .*~
 worker_bin
+worker_bin.dSYM/
+.vscode/
+*.pb.cc 
+*.pb.h

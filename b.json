@@ -23,6 +23,12 @@
             "serverip": "127.0.0.1",
             "serverHTTPPort" : 4444,
             "serverRPCPort" : 4400
+        },
+        {
+            "serverName" : "d",
+            "serverip": "127.0.0.1",
+            "serverHTTPPort" : 5555,
+            "serverRPCPort" : 5500
         }
     ]
 }

@@ -1,9 +1,9 @@
 { "Server":
     {
-        "serverName" : "a",
+        "serverName" : "d",
         "serverip": "127.0.0.1",
-        "serverHTTPPort" : 2222,
-        "serverRPCPort" : 2200
+        "serverHTTPPort" : 5555,
+        "serverRPCPort" : 5500
     },
     "AllServers": [
         {
