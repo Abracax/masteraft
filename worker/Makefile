@@ -1,6 +1,6 @@
 all: worker_bin
 
-CXXFLAGS=-lpthread -lboost_system -lprotobuf -O2 -std=c++14 -g
+CXXFLAGS=-lpthread -lboost_system -lprotobuf -lboost_date_time -O2 -std=c++17 -g
 
 worker_bin: src/*.cpp src/*.hpp protos
 	clang++ src/*.cpp build/src/proto/*.cc -Ibuild ${CXXFLAGS} -o worker_bin

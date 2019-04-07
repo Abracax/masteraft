@@ -5,7 +5,7 @@
 #include "http_status_server.hpp"
 #include "raft_state.hpp"
 #include "rpc_server.hpp"
-#include "src/proto/rpc.pb.h"
+#include "rpc.pb.h"
 #include "utils.hpp"
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -35,8 +35,9 @@ public:
 
     boost::asio::ip::tcp::endpoint rpcEp(boost::asio::ip::tcp::v4(), rpcPort);
     _rpcServer = std::make_unique<RpcServer>(_ctx, rpcEp);
-    _isFirst = 1;
-    _rpcServer->setRaftServer(this, _isFirst);
+    _grantVote = 1;
+    _rpcServer->setRaftServer(this, _grantVote,_state->getRole(),
+                              _state->getTerm());
 
     _state->setWorkers(workerInfo);
     std::random_device rd;
@@ -93,6 +94,8 @@ protected:
     _state->setTerm(_state->getTerm() + 1);
     _httpStatusServer->setRaftServer(this, _state->getRole(),
                                      _state->getTerm());
+    _rpcServer->setRaftServer(this, _grantVote,_state->getRole(),
+                                _state->getTerm());
     _voteFor = 0;
     _voteRejected = 0;
 
@@ -210,23 +213,27 @@ protected:
                               if (term > _state->getTerm())
                               {
                                 _state->setTerm(term);
+                                _state->setRole(Role::Candidate);
                                 _httpStatusServer->setRaftServer(
-                                    this, _state->getRole(), term);
+                                    this, Role::Candidate, term);
+                                _rpcServer->setRaftServer(this, _grantVote,Role::Candidate,
+                                                          term);
                                 MR_LOG << "update term from peer: " << term
                                        << MR_EOL;
+                                MR_LOG << "term num fall behind, become Candidate." << MR_EOL;
+                                return;
                               }
-                              while (_voteFor + _voteRejected < count - 1)
-                              {
-                                sleep(10);
-                              }
+
                               if (_voteFor >= (count + 1) / 2)
                               {
                                 MR_LOG << "become leader." << MR_EOL;
                                 _state->setRole(Role::Leader);
                                 _httpStatusServer->setRaftServer(this, Role::Leader,
                                                                  _state->getTerm());
-                                _isFirst = 1;
-                                _rpcServer->setRaftServer(this, _isFirst);
+
+                                _grantVote = 1;
+                                _rpcServer->setRaftServer(this, _grantVote,Role::Leader,
+                                                            _state->getTerm());
                               }
                               else
                               {
@@ -260,7 +267,7 @@ protected:
   std::atomic_uint32_t _voteFor;
   std::atomic_uint32_t _voteRejected;
 
-  bool _isFirst;
+  bool _grantVote;
 };
 } // namespace mr
 

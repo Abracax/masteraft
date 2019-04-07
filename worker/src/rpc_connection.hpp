@@ -2,7 +2,7 @@
 #define MASTER_RAFT_RPC_CONNECTION_HPP
 
 #include "basic_connection.hpp"
-#include "src/proto/rpc.pb.h"
+#include "rpc.pb.h"
 #include <memory>
 #include <string>
 
@@ -13,7 +13,7 @@ class RpcConnection : public std::enable_shared_from_this<RpcConnection>,
                       public BasicConnection
 {
 public:
-  RpcConnection(boost::asio::io_context &ctx) : BasicConnection(ctx) {}
+  RpcConnection(boost::asio::io_context &ctx) : BasicConnection(ctx), _grantVote(1) {}
 
   void start() override
   {
@@ -23,7 +23,7 @@ public:
     boost::asio::async_read(
         socket(), boost::asio::buffer(buf, 4), boost::asio::transfer_exactly(4),
         [shared_ptr, buf, this](const boost::system::error_code &err,
-                                std::size_t read_length) {
+                                std::size_t read_length) mutable{
           if (err)
           {
             MR_LOG_WARN << "rpc read first 4 bytes error: " << err.message()
@@ -33,7 +33,7 @@ public:
 
           uint32_t len = *buf;
           auto readBuf = new char[len];
-          //MR_LOG << "rpc pre-read length is: " << len << MR_EOL;
+
           boost::asio::async_read(
               socket(), boost::asio::buffer(readBuf, len),
               boost::asio::transfer_exactly(len),
@@ -47,20 +47,20 @@ public:
                   return;
                 }
 
-                auto str = new char[len]; // FIXME: delete
+                auto str = new char[len]; 
                 std::memcpy(str, readBuf, len);
 
                 auto reqBody = std::make_unique<PeerRequest>();
                 reqBody->ParseFromArray(str, len);
                 auto term = reqBody->voterequest().term();
 
-                //MR_LOG << " received" << MR_EOL;
+                if(term > _term) _grantVote = 0;
 
                 PeerResponse resBody;
-                VoteResponse *_resbody = new VoteResponse();
-                _resbody->set_term(term);
-                _resbody->set_votegranted(isFirst);
-                resBody.set_allocated_voteresponse(_resbody);
+                VoteResponse *resbody = new VoteResponse();
+                resbody->set_term(term);
+                resbody->set_votegranted(_grantVote);
+                resBody.set_allocated_voteresponse(resbody);
                 resBody.set_type(RequestVote);
                 uint32_t wlen = resBody.ByteSizeLong();
                 auto wbuf = new char[wlen + 4];
@@ -77,21 +77,26 @@ public:
                                     << MR_EOL;
                         return;
                       }
-                      //MR_LOG << "returned    " << write_length << MR_EOL;
+                      grantVote(0);
                       delete[] wbuf;
                       delete[] readBuf;
                       delete[] str;
-
                       this->socket().close();
                     });
                 delete[] buf;
               });
         });
   }
-  void setIsFirst(bool first) { isFirst = first; }
+  void grantVote(bool first) { _grantVote = first; }
+  void setState (Role role, uint64_t term){
+      _role = role;
+      _term = term;
+  }
 
 private:
-  bool isFirst;
+  bool _grantVote;
+  Role _role;
+  uint64_t _term;
 };
 } // namespace mr
 

@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="masteraft"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="worker_bin">
+				<Option output="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/worker_bin" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 worker_bin"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="worker_bin/fast">
+				<Option output="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/worker_bin" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.1/include"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 worker_bin/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/client.pb.cc">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/client.pb.h">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/client.pb.h.rule">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/rpc.pb.cc">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/rpc.pb.h">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/rpc.pb.h.rule">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/basic_connection.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/common.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/http_connection.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/http_status_server.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/main.cpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/raft_server.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/raft_state.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/rpc_connection.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/rpc_server.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/server_configs.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/template.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/src/utils.hpp">
+			<Option target="worker_bin"/>
+		</Unit>
+		<Unit filename="/Users/chenanxue/coding/raft/masteraft/worker/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
