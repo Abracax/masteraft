@@ -1,2 +1,0 @@
-/Users/chenanxue/coding/raft/masteraft/worker/src/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/Users/chenanxue/coding/raft/masteraft/worker/src/cmake-build-debug/CMakeFiles/edit_cache.dir

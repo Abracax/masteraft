@@ -1,3 +1,0 @@
-# Hashes of file build rules.
-b2ba23395061fc064aa54b8f0a3542f3 client.pb.h
-61a3835f8a48ab96985316a6b91a45ee rpc.pb.h
