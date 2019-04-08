@@ -2,9 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(masteraft)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-lpthread -lboost_system -lboost_date_time -O2 -std=c++17 -g \
--I/usr/local/Cellar/boost/1.68.0_1/include \
--L/usr/local/Cellar/boost/1.68.0_1/lib")
+set(CMAKE_CXX_FLAGS "-O2 -g")
 
 #set(Boost_USE_STATIC_LIBS ON)
 #set(Boost_USE_MULTITHREADED ON)
@@ -14,6 +12,7 @@ find_package(Protobuf REQUIRED)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 
 
 file(GLOB PB_SRCS
@@ -29,4 +28,4 @@ add_executable(worker_bin
         ${PROTO_SRCS}
         ${PROTO_HDRS})
 
-target_link_libraries(worker_bin ${Protobuf_LIBRARIES})
+target_link_libraries(worker_bin ${Protobuf_LIBRARIES} ${Boost_LIBRARIES})

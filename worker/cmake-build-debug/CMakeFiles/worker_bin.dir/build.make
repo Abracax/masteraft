@@ -126,6 +126,15 @@ worker_bin: CMakeFiles/worker_bin.dir/client.pb.cc.o
 worker_bin: CMakeFiles/worker_bin.dir/rpc.pb.cc.o
 worker_bin: CMakeFiles/worker_bin.dir/build.make
 worker_bin: /usr/local/lib/libprotobuf.dylib
+worker_bin: /usr/local/lib/libboost_date_time-mt.dylib
+worker_bin: /usr/local/lib/libboost_log-mt.dylib
+worker_bin: /usr/local/lib/libboost_thread-mt.dylib
+worker_bin: /usr/local/lib/libboost_system-mt.dylib
+worker_bin: /usr/local/lib/libboost_log_setup-mt.dylib
+worker_bin: /usr/local/lib/libboost_filesystem-mt.dylib
+worker_bin: /usr/local/lib/libboost_regex-mt.dylib
+worker_bin: /usr/local/lib/libboost_chrono-mt.dylib
+worker_bin: /usr/local/lib/libboost_atomic-mt.dylib
 worker_bin: CMakeFiles/worker_bin.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/chenanxue/coding/raft/masteraft/worker/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable worker_bin"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/worker_bin.dir/link.txt --verbose=$(VERBOSE)
